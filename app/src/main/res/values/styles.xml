@@ -1,0 +1,47 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="SplashTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@drawable/background_splash</item>
+    </style>
+
+    <style name="ListImage">
+        <item name="android:layout_width">@dimen/size_list_image</item>
+        <item name="android:layout_height">@dimen/size_list_image</item>
+        <item name="android:scaleGravity">fill</item>
+        <item name="android:layout_marginRight">@dimen/padding_default</item>
+    </style>
+
+    <style name="ListTitle">
+        <item name="android:paddingBottom">@dimen/padding_default</item>
+        <item name="android:textColor">@color/text_title</item>
+        <item name="android:textSize">@dimen/font_size_title</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <style name="ListDescription">
+        <item name="android:textColor">@color/text_description</item>
+        <item name="android:textSize">@dimen/font_size_description</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+
+</resources>

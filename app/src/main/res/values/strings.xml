@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Fliiik</string>
+
+    <string name="header_title">Your title</string>
+    <string name="header_sample">Installed Applications</string>
+
+    <string name="footer_button_close">CLOSE</string>
+    <string name="footer_button_confirm">CONFIRM</string>
+    <string name="footer_sample"> </string>
+    <string name="title_activity_log">LogActivity</string>
+</resources>
