@@ -28,9 +28,9 @@ import com.orhanobut.dialogplus.Holder;
 import com.orhanobut.dialogplus.ListHolder;
 import com.orhanobut.dialogplus.OnClickListener;
 import com.orhanobut.dialogplus.OnItemClickListener;
-import com.quandary.quandary.Service.FliiikService;
-import com.quandary.quandary.UI.PackageAdapter;
-import com.quandary.quandary.UI.PackageItem;
+import com.quandary.quandary.service.FliiikService;
+import com.quandary.quandary.ui.PackageAdapter;
+import com.quandary.quandary.ui.PackageItem;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,4 +1,4 @@
-package com.quandary.quandary.Service;
+package com.quandary.quandary.service;
 
 import android.app.Service;
 import android.content.Intent;
@@ -6,7 +6,7 @@ import android.content.IntentFilter;
 import android.os.IBinder;
 
 import com.quandary.quandary.ConfigurationManager;
-import com.quandary.quandary.Detector.ShakeDetector;
+import com.quandary.quandary.detector.ShakeDetector;
 
 /**
  * Created by lim on 9/21/16.

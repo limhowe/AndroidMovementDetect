@@ -1,11 +1,9 @@
-package com.quandary.quandary.Service;
+package com.quandary.quandary.service;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-
-import com.quandary.quandary.Service.FliiikService;
 
 /**
  * Created by lim on 9/21/16.

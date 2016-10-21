@@ -1,4 +1,4 @@
-package com.quandary.quandary.UI;
+package com.quandary.quandary.ui;
 
 import android.content.Context;
 import android.view.LayoutInflater;

@@ -1,4 +1,4 @@
-package com.quandary.quandary.Service;
+package com.quandary.quandary.service;
 
 /**
  * Created by lim on 9/22/16.

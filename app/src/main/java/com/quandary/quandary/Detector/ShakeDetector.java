@@ -1,4 +1,4 @@
-package com.quandary.quandary.Detector;
+package com.quandary.quandary.detector;
 
 import android.content.Context;
 import android.hardware.Sensor;

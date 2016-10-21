@@ -1,4 +1,4 @@
-package com.quandary.quandary.Service;
+package com.quandary.quandary.service;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

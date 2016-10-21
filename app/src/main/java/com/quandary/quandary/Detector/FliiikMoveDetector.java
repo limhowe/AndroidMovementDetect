@@ -1,16 +1,23 @@
-package com.quandary.quandary.Detector;
+package com.quandary.quandary.detector;
 
+import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
+import com.quandary.quandary.filter.LowPassFilterSmoothing;
+import com.quandary.quandary.filter.MeanFilterSmoothing;
+import com.quandary.quandary.filter.MedianFilterSmoothing;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class FliiikMoveDetector implements SensorEventListener {
 
+    protected volatile float[] acceleration = new float[3];
+
     private static final float DEFAULT_THRESHOLD_ACCELERATION = 2.0f;
-    private static final int DEFAULT_THRESHOLD_SHAKE_NUMBER = 3;
     private static final int INTERVAL = 200;
 
     private static SensorManager mSensorManager;
@@ -20,6 +27,18 @@ public class FliiikMoveDetector implements SensorEventListener {
     private ArrayList<FliiikMoveDetector.SensorBundle> mSensorBundles;
     private Object mLock;
     private float mThresholdAcceleration;
+
+
+    protected MeanFilterSmoothing meanFilterAccelSmoothing;
+    protected MedianFilterSmoothing medianFilterAccelSmoothing;
+    protected LowPassFilterSmoothing lpfAccelSmoothing;
+
+    protected boolean meanFilterSmoothingEnabled;
+    protected boolean medianFilterSmoothingEnabled;
+    protected boolean lpfSmoothingEnabled;
+
+
+    private String[] axises = {"X", "Y" , "Z" };
 
     /**
      * Interface definition for a callback to be invoked when the device has performed one of fliiikmove.
@@ -39,6 +58,33 @@ public class FliiikMoveDetector implements SensorEventListener {
         mSensorBundles = new ArrayList<FliiikMoveDetector.SensorBundle>();
         mLock = new Object();
         mThresholdAcceleration = DEFAULT_THRESHOLD_ACCELERATION;
+
+
+        meanFilterAccelSmoothing = new MeanFilterSmoothing();
+        medianFilterAccelSmoothing = new MedianFilterSmoothing();
+        lpfAccelSmoothing = new LowPassFilterSmoothing();
+
+    }
+
+    /**
+     * Creates a shake detector and starts listening for device shakes. Neither {@code context} nor
+     * {@code listener} can be null. In that case, a {@link IllegalArgumentException} will be thrown.
+     *
+     * @param context The current Android context.
+     * @param listener The callback triggered when the device is shaken.
+     * @return true if the shake detector has been created and started correctly, false otherwise.
+     */
+    public static boolean create(Context context, OnFliiikMoveListener listener) {
+        if (context == null) {
+            throw new IllegalArgumentException("Context must not be null");
+        }
+
+        if (mSensorManager == null) {
+            mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        }
+        mSensorEventListener = new FliiikMoveDetector(listener);
+
+        return mSensorManager.registerListener(mSensorEventListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_GAME);
     }
 
 
@@ -73,16 +119,36 @@ public class FliiikMoveDetector implements SensorEventListener {
      * for the sensibility
      *
      * @param sensibility The sensibility, in G, is the minimum acceleration need to be considered
-     *                    as a shake. The higher number you go, the harder you have to shake your
+     *                    as a fliiikmove. The higher number you go, the harder you have to fliiikmove your
      *                    device to trigger a move.
      */
-    public static void updateConfiguration(float sensibility) {
-        mSensorEventListener.setConfiguration(sensibility);
+    public static void updateConfiguration(float sensibility, boolean meanFilterSmoothingEnabled, boolean medianFilterSmoothingEnabled, boolean lpfSmoothingEnabled) {
+        mSensorEventListener.setConfiguration(sensibility,meanFilterSmoothingEnabled,medianFilterSmoothingEnabled,lpfSmoothingEnabled);
     }
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
-        FliiikMoveDetector.SensorBundle sensorBundle = new FliiikMoveDetector.SensorBundle(sensorEvent.values[0], sensorEvent.values[1], sensorEvent.values[2], sensorEvent.timestamp);
+
+        System.arraycopy(sensorEvent.values, 0, acceleration, 0, sensorEvent.values.length);
+
+        if (meanFilterSmoothingEnabled)
+        {
+            acceleration = meanFilterAccelSmoothing
+                    .addSamples(acceleration);
+        }
+
+        if (medianFilterSmoothingEnabled)
+        {
+            acceleration = medianFilterAccelSmoothing
+                    .addSamples(acceleration);
+        }
+
+        if (lpfSmoothingEnabled)
+        {
+            acceleration = lpfAccelSmoothing.addSamples(acceleration);
+        }
+
+        FliiikMoveDetector.SensorBundle sensorBundle = new FliiikMoveDetector.SensorBundle(acceleration[0], acceleration[1], acceleration[2], sensorEvent.timestamp);
 
         synchronized (mLock) {
             if (mSensorBundles.size() == 0) {
@@ -100,8 +166,13 @@ public class FliiikMoveDetector implements SensorEventListener {
         // The accuracy is not likely to change on a real device. Just ignore it.
     }
 
-    private void setConfiguration(float sensibility) {
+    private void setConfiguration(float sensibility, boolean meanFilterSmoothingEnabled, boolean medianFilterSmoothingEnabled, boolean lpfSmoothingEnabled) {
         mThresholdAcceleration = sensibility;
+
+        this.meanFilterSmoothingEnabled = meanFilterSmoothingEnabled;
+        this.medianFilterSmoothingEnabled = medianFilterSmoothingEnabled;
+        this.lpfSmoothingEnabled = lpfSmoothingEnabled;
+
         synchronized (mLock) {
             mSensorBundles.clear();
         }
@@ -143,10 +214,28 @@ public class FliiikMoveDetector implements SensorEventListener {
                 }
             }
 
-            for (int[] axis: matrix) {
+            StringBuilder buidler = new StringBuilder();
+
+            boolean found = false ;
+
+            for (int i=0; i<3; i++) {
+                int[] axis = matrix[i];
+                buidler.append(axises[i]);
+
                 for (int direction: axis) {
+
+                    if (direction > 0) {
+                        found = true;
+                    }
                     //Check which action
                 }
+
+                buidler.append(Arrays.toString(axis));
+                buidler.append("  ");
+            }
+
+            if (found) {
+                mFliiikMoveListener.OnFliiikMove(new FliiikMove(buidler.toString()));
             }
 
             mSensorBundles.clear();
