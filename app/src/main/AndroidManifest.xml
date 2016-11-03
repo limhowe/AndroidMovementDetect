@@ -11,11 +11,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <!--<receiver android:name=".Service.ServiceBooter">-->
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.BOOT_COMPLETED" />-->
-            <!--</intent-filter>-->
-        <!--</receiver>-->
+        <receiver android:name=".service.ServiceBooter">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".service.FliiikService"
@@ -36,6 +36,7 @@
         <activity
             android:name=".LogActivity"
             android:label="@string/title_activity_log"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
 
 

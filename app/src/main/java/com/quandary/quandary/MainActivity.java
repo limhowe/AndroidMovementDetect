@@ -43,14 +43,22 @@ public class MainActivity extends AppCompatActivity {
     private List<PackageItem> data;
 
     OnClickListener clickListener;
-    OnItemClickListener itemClickListener;
+
+    OnItemClickListener itemClickListenerTap;
+    OnItemClickListener itemClickListenerChop;
 
     ImageView imageApp;
     TextView textApp;
     Switch switchApp;
 
-    String mPackageName = "";
-    Boolean mSetEnabled = false;
+    ImageView imageApp1;
+    TextView textApp1;
+    Switch switchApp1;
+
+    String mPackageNameTap = "";
+    Boolean mSetEnabledTap = false;
+    String mPackageNameChop = "";
+    Boolean mSetEnabledChop = false;
 
     ConfigurationManager sharedConfigurationManager;
 
@@ -63,6 +71,10 @@ public class MainActivity extends AppCompatActivity {
         imageApp = (ImageView) findViewById(R.id.imageApp);
         textApp = (TextView) findViewById(R.id.textApp);
         switchApp = (Switch) findViewById(R.id.switch1);
+
+        imageApp1 = (ImageView) findViewById(R.id.imageApp1);
+        textApp1 = (TextView) findViewById(R.id.textApp1);
+        switchApp1 = (Switch) findViewById(R.id.switch2);
 
         sharedConfigurationManager = new ConfigurationManager(getApplicationContext());
 
@@ -77,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        itemClickListener = new OnItemClickListener() {
+        itemClickListenerTap = new OnItemClickListener() {
             @Override
             public void onItemClick(DialogPlus dialog, Object item, View view, int position) {
                 PackageItem itemSelected =  (PackageItem)item;
@@ -87,31 +99,71 @@ public class MainActivity extends AppCompatActivity {
                 dialog.dismiss();
                 Toast.makeText(MainActivity.this, clickedAppName + " selected", Toast.LENGTH_LONG).show();
 
-                mPackageName = itemSelected.getPackageName();
-                sharedConfigurationManager.setActionPackage(mPackageName);
+                mPackageNameTap = itemSelected.getPackageName();
+                sharedConfigurationManager.setActionPackageForTap(mPackageNameTap);
+            }
+        };
+
+        itemClickListenerChop = new OnItemClickListener() {
+            @Override
+            public void onItemClick(DialogPlus dialog, Object item, View view, int position) {
+                PackageItem itemSelected =  (PackageItem)item;
+                String clickedAppName = itemSelected.getName();
+                imageApp1.setImageDrawable(itemSelected.getIcon());
+                textApp1.setText(clickedAppName);
+                dialog.dismiss();
+                Toast.makeText(MainActivity.this, clickedAppName + " selected", Toast.LENGTH_LONG).show();
+
+                mPackageNameChop = itemSelected.getPackageName();
+                sharedConfigurationManager.setActionPackageForChop(mPackageNameChop);
             }
         };
 
 
         final PackageManager pm = getPackageManager();
         PackageItem calcItem = null;
+        PackageItem phoneItem = null;
 
-        mSetEnabled = sharedConfigurationManager.getServiceEnabled();
-        switchApp.setChecked(mSetEnabled);
+        mSetEnabledTap = sharedConfigurationManager.getTapServiceEnabled();
+        switchApp.setChecked(mSetEnabledTap);
 
-        mPackageName = sharedConfigurationManager.getActionPackage();
+        mPackageNameTap = sharedConfigurationManager.getActionPackageForTap();
 
-        if (mPackageName != "") {
+        if (mPackageNameTap != "") {
             try {
-                if (pm.getLaunchIntentForPackage(mPackageName) != null) {
-                    ApplicationInfo content = pm.getApplicationInfo(mPackageName,0);
+                if (pm.getLaunchIntentForPackage(mPackageNameTap) != null) {
+                    ApplicationInfo content = pm.getApplicationInfo(mPackageNameTap,0);
                     String name  = getPackageManager().getApplicationLabel(content).toString();
                     Drawable icon = getPackageManager().getDrawable(content.packageName, content.icon, content);
 
                     calcItem = new PackageItem();
-                    calcItem.setPackageName(mPackageName);
+                    calcItem.setPackageName(mPackageNameTap);
                     calcItem.setIcon(icon);
                     calcItem.setName(name);
+                }
+            } catch (Exception e) {
+                Log.e("", "Parse Application Manager Step1: " + e.toString());
+            } catch(Error e2) {
+                Log.e("", "Parse Application Manager Step 22: " + e2.toString());
+            }
+        }
+
+        mSetEnabledChop = sharedConfigurationManager.getChopServiceEnabled();
+        switchApp1.setChecked(mSetEnabledChop);
+
+        mPackageNameChop = sharedConfigurationManager.getActionPackageForChop();
+
+        if (mPackageNameChop != "") {
+            try {
+                if (pm.getLaunchIntentForPackage(mPackageNameChop) != null) {
+                    ApplicationInfo content = pm.getApplicationInfo(mPackageNameChop,0);
+                    String name  = getPackageManager().getApplicationLabel(content).toString();
+                    Drawable icon = getPackageManager().getDrawable(content.packageName, content.icon, content);
+
+                    phoneItem = new PackageItem();
+                    phoneItem.setPackageName(mPackageNameTap);
+                    phoneItem.setIcon(icon);
+                    phoneItem.setName(name);
                 }
             } catch (Exception e) {
                 Log.e("", "Parse Application Manager Step1: " + e.toString());
@@ -137,6 +189,10 @@ public class MainActivity extends AppCompatActivity {
                     if( calcItem == null &&  content.packageName.toString().toLowerCase().contains("calcul")){
                         calcItem = item;
                     }
+
+                    if( phoneItem == null &&  content.packageName.toString().toLowerCase().contains("clock")){
+                        phoneItem = item;
+                    }
                 }
             } catch (Exception e) {
                 Log.e("", "Parse Application Manager: " + e.toString());
@@ -155,12 +211,22 @@ public class MainActivity extends AppCompatActivity {
 
         if (calcItem != null) {
 
-            if (mPackageName == "") {
-                mPackageName = calcItem.getPackageName();
-                sharedConfigurationManager.setActionPackage(mPackageName);
+            if (mPackageNameTap == "") {
+                mPackageNameTap = calcItem.getPackageName();
+                sharedConfigurationManager.setActionPackageForTap(mPackageNameTap);
             }
             imageApp.setImageDrawable(calcItem.getIcon());
             textApp.setText(calcItem.getName());
+        }
+
+        if (phoneItem != null) {
+
+            if (mPackageNameChop == "") {
+                mPackageNameChop = phoneItem.getPackageName();
+                sharedConfigurationManager.setActionPackageForChop(mPackageNameChop);
+            }
+            imageApp1.setImageDrawable(phoneItem.getIcon());
+            textApp1.setText(phoneItem.getName());
         }
 
 
@@ -168,14 +234,29 @@ public class MainActivity extends AppCompatActivity {
         layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                changeApplication();
+                changeApplication(true);
+            }
+        });
+
+        final RelativeLayout layout1 = (RelativeLayout) findViewById(R.id.more1);
+        layout1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                changeApplication(false);
             }
         });
 
         switchApp.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                sharedConfigurationManager.setServiceEnabled(isChecked);
+                sharedConfigurationManager.setTapServiceEnabled(isChecked);
+            }
+        });
+
+        switchApp1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                sharedConfigurationManager.setChopServiceEnabled(isChecked);
             }
         });
 
@@ -209,10 +290,16 @@ public class MainActivity extends AppCompatActivity {
 
     //Change Application
 
-    private void changeApplication () {
+    private void changeApplication (boolean isTap) {
 
-        showCompleteDialog(new ListHolder(), Gravity.BOTTOM, adapter, clickListener, itemClickListener,
-                false);
+        if (isTap) {
+            showCompleteDialog(new ListHolder(), Gravity.BOTTOM, adapter, clickListener, itemClickListenerTap,
+                    false);
+        } else {
+            showCompleteDialog(new ListHolder(), Gravity.BOTTOM, adapter, clickListener, itemClickListenerChop,
+                    false);
+        }
+
     }
 
 

@@ -5,17 +5,17 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
 
+import com.quandary.quandary.detector.move.FliiikMove;
+import com.quandary.quandary.detector.move.FliiikMoveTap;
 import com.quandary.quandary.filter.LowPassFilterSmoothing;
 import com.quandary.quandary.filter.MeanFilterSmoothing;
 import com.quandary.quandary.filter.MedianFilterSmoothing;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class FliiikMoveDetector implements SensorEventListener {
-
-    protected volatile float[] acceleration = new float[3];
 
     private static final float DEFAULT_THRESHOLD_ACCELERATION = 2.0f;
     private static final int INTERVAL = 200;
@@ -24,10 +24,11 @@ public class FliiikMoveDetector implements SensorEventListener {
     private static FliiikMoveDetector mSensorEventListener;
 
     private FliiikMoveDetector.OnFliiikMoveListener mFliiikMoveListener;
-    private ArrayList<FliiikMoveDetector.SensorBundle> mSensorBundles;
+    private ArrayList<SensorBundle> mSensorBundles;
     private Object mLock;
     private float mThresholdAcceleration;
 
+    private SensorBundle mLastSensorBundle;
 
     protected MeanFilterSmoothing meanFilterAccelSmoothing;
     protected MedianFilterSmoothing medianFilterAccelSmoothing;
@@ -37,8 +38,10 @@ public class FliiikMoveDetector implements SensorEventListener {
     protected boolean medianFilterSmoothingEnabled;
     protected boolean lpfSmoothingEnabled;
 
-
     private String[] axises = {"X", "Y" , "Z" };
+    protected volatile float[] acceleration = new float[3];
+
+    private ArrayList<FliiikMove> mSupportedMoves;
 
     /**
      * Interface definition for a callback to be invoked when the device has performed one of fliiikmove.
@@ -55,7 +58,7 @@ public class FliiikMoveDetector implements SensorEventListener {
             throw new IllegalArgumentException("FliikMove listener must not be null");
         }
         mFliiikMoveListener = listener;
-        mSensorBundles = new ArrayList<FliiikMoveDetector.SensorBundle>();
+        mSensorBundles = new ArrayList<SensorBundle>();
         mLock = new Object();
         mThresholdAcceleration = DEFAULT_THRESHOLD_ACCELERATION;
 
@@ -64,6 +67,9 @@ public class FliiikMoveDetector implements SensorEventListener {
         medianFilterAccelSmoothing = new MedianFilterSmoothing();
         lpfAccelSmoothing = new LowPassFilterSmoothing();
 
+        mLastSensorBundle = null;
+        mSupportedMoves = new ArrayList<FliiikMove>();
+        mSupportedMoves.add(new FliiikMoveTap()); // Add support FliiikMoveTap
     }
 
     /**
@@ -148,17 +154,24 @@ public class FliiikMoveDetector implements SensorEventListener {
             acceleration = lpfAccelSmoothing.addSamples(acceleration);
         }
 
-        FliiikMoveDetector.SensorBundle sensorBundle = new FliiikMoveDetector.SensorBundle(acceleration[0], acceleration[1], acceleration[2], sensorEvent.timestamp);
+        SensorBundle sensorBundle = new SensorBundle(acceleration[0], acceleration[1], acceleration[2], sensorEvent.timestamp);
+
+
+        boolean checked = false;
 
         synchronized (mLock) {
-            if (mSensorBundles.size() == 0) {
+            if (mLastSensorBundle == null) {
                 mSensorBundles.add(sensorBundle);
-            } else if (sensorBundle.getTimestamp() - mSensorBundles.get(mSensorBundles.size() - 1).getTimestamp() > INTERVAL) {
+                checked = true;
+            } else if (sensorBundle.getTimestamp() - mLastSensorBundle.getTimestamp() > INTERVAL) {
                 mSensorBundles.add(sensorBundle);
+                checked = true;
             }
         }
 
-        performCheck();
+        if (checked) {
+            performCheck();
+        }
     }
 
     @Override
@@ -180,121 +193,50 @@ public class FliiikMoveDetector implements SensorEventListener {
 
     private void performCheck() {
         synchronized (mLock) {
-            int[] vector = {0, 0, 0};
-            int[][] matrix = {
-                    {0, 0}, // Represents X axis, positive and negative direction.
-                    {0, 0}, // Represents Y axis, positive and negative direction.
-                    {0, 0}  // Represents Z axis, positive and negative direction.
-            };
+            for (int i=0; i<mSensorBundles.size(); i++) {
 
-            for (FliiikMoveDetector.SensorBundle sensorBundle : mSensorBundles) {
-                if (sensorBundle.getXAcc() > mThresholdAcceleration && vector[0] < 1) {
-                    vector[0] = 1;
-                    matrix[0][0]++;
-                }
-                if (sensorBundle.getXAcc() < -mThresholdAcceleration && vector[0] > -1) {
-                    vector[0] = -1;
-                    matrix[0][1]++;
-                }
-                if (sensorBundle.getYAcc() > mThresholdAcceleration && vector[1] < 1) {
-                    vector[1] = 1;
-                    matrix[1][0]++;
-                }
-                if (sensorBundle.getYAcc() < -mThresholdAcceleration && vector[1] > -1) {
-                    vector[1] = -1;
-                    matrix[1][1]++;
-                }
-                if (sensorBundle.getZAcc() > mThresholdAcceleration && vector[2] < 1) {
-                    vector[2] = 1;
-                    matrix[2][0]++;
-                }
-                if (sensorBundle.getZAcc() < -mThresholdAcceleration && vector[2] > -1) {
-                    vector[2] = -1;
-                    matrix[2][1]++;
-                }
-            }
+                SensorBundle sensorBundle = mSensorBundles.get(i);
 
-            StringBuilder buidler = new StringBuilder();
+                if (mLastSensorBundle == null) {
+                    mLastSensorBundle =  sensorBundle;
+                    continue;
+                }
 
-            boolean found = false ;
+                SensorBundle changeBundle = new SensorBundle(sensorBundle.getXAcc() - mLastSensorBundle.getXAcc(),
+                        sensorBundle.getYAcc() - mLastSensorBundle.getYAcc(),
+                        sensorBundle.getZAcc() - mLastSensorBundle.getZAcc(),
+                        sensorBundle.getTimestamp());
 
-            for (int i=0; i<3; i++) {
-                int[] axis = matrix[i];
-                buidler.append(axises[i]);
-
-                for (int direction: axis) {
-
-                    if (direction > 0) {
-                        found = true;
+                for (int j=0; j<mSupportedMoves.size(); j++) {
+                    FliiikMove fliiikMove = mSupportedMoves.get(j);
+                    FliiikMove.FliiikMoveStatus resultStatus = fliiikMove.performCheck(changeBundle);
+                    if (resultStatus == FliiikMove.FliiikMoveStatus.COMPLETE) {
+                        mFliiikMoveListener.OnFliiikMove(fliiikMove);
+                        resetSupportedMoves(j);
+                        break;
+                    } else if (resultStatus == FliiikMove.FliiikMoveStatus.PROGRESS) {
+                        Log.i("MOVE-TAP :", fliiikMove.toString());
                     }
-                    //Check which action
                 }
 
-                buidler.append(Arrays.toString(axis));
-                buidler.append("  ");
-            }
-
-            if (found) {
-                mFliiikMoveListener.OnFliiikMove(new FliiikMove(buidler.toString()));
+                mLastSensorBundle = sensorBundle;
             }
 
             mSensorBundles.clear();
         }
     }
 
-    /**
-     * Convenient object used to store the 3 axis accelerations of the device as well as the current
-     * captured time.
-     */
-    private class SensorBundle {
-        /**
-         * The acceleration on X axis.
-         */
-        private final float mXAcc;
-        /**
-         * The acceleration on Y axis.
-         */
-        private final float mYAcc;
-        /**
-         * The acceleration on Z axis.
-         */
-        private final float mZAcc;
-        /**
-         * The timestamp when to record was captured.
-         */
-        private final long mTimestamp;
-
-        public SensorBundle(float XAcc, float YAcc, float ZAcc, long timestamp) {
-            mXAcc = XAcc;
-            mYAcc = YAcc;
-            mZAcc = ZAcc;
-            mTimestamp = timestamp;
+    private void resetSupportedMoves() {
+        for (FliiikMove fliiikMove: mSupportedMoves) {
+            fliiikMove.resetMove();
         }
+    }
 
-        public float getXAcc() {
-            return mXAcc;
-        }
-
-        public float getYAcc() {
-            return mYAcc;
-        }
-
-        public float getZAcc() {
-            return mZAcc;
-        }
-
-        public long getTimestamp() {
-            return mTimestamp;
-        }
-
-        @Override
-        public String toString() {
-            return "SensorBundle{" +
-                    "mXAcc=" + mXAcc +
-                    ", mYAcc=" + mYAcc +
-                    ", mZAcc=" + mZAcc +
-                    ", mTimestamp=" + mTimestamp +
-                    '}';
+    private void resetSupportedMoves(int idExcpetion) {
+        for (int i=0; i<mSupportedMoves.size(); i++) {
+            if (i == idExcpetion) continue;;
+            FliiikMove fliiikMove = mSupportedMoves.get(i);
+            fliiikMove.resetMove();
         }
     }
 

@@ -17,23 +17,42 @@ public class ConfigurationManager {
         pref = context.getSharedPreferences(PREFERENCE_NAME, Activity.MODE_PRIVATE);
     }
 
-    public void setActionPackage(String packageName) {
+    public void setActionPackageForTap(String packageName) {
         SharedPreferences.Editor editor = pref.edit();
-        editor.putString("fShakePackage", packageName);
+        editor.putString("fTapPackage", packageName);
         editor.commit();
     }
 
-    public void setServiceEnabled(Boolean isEnabled) {
+    public void setActionPackageForChop(String packageName) {
         SharedPreferences.Editor editor = pref.edit();
-        editor.putBoolean("fShakeEnabled", isEnabled);
+        editor.putString("fChopPackage", packageName);
         editor.commit();
     }
 
-    public String getActionPackage() {
-        return  pref.getString("fShakePackage", "");
+    public void setTapServiceEnabled(Boolean isEnabled) {
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putBoolean("fTapEnabled", isEnabled);
+        editor.commit();
     }
 
-    public Boolean getServiceEnabled() {
-        return  pref.getBoolean("fShakeEnabled", false);
+    public void setChopServiceEnabled(Boolean isEnabled) {
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putBoolean("fChopEnabled", isEnabled);
+        editor.commit();
+    }
+
+    public String getActionPackageForTap() {
+        return  pref.getString("fTapPackage", "");
+    }
+
+    public String getActionPackageForChop() {
+        return  pref.getString("fChopPackage", "");
+    }
+
+    public Boolean getTapServiceEnabled() {
+        return  pref.getBoolean("fTapEnabled", false);
+    }
+    public Boolean getChopServiceEnabled() {
+        return  pref.getBoolean("fChopEnabled", false);
     }
 }
