@@ -5,10 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,17 +20,21 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.baoyz.swipemenulistview.SwipeMenu;
+import com.baoyz.swipemenulistview.SwipeMenuCreator;
+import com.baoyz.swipemenulistview.SwipeMenuItem;
+import com.baoyz.swipemenulistview.SwipeMenuListView;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.Holder;
 import com.orhanobut.dialogplus.ListHolder;
 import com.orhanobut.dialogplus.OnClickListener;
 import com.orhanobut.dialogplus.OnItemClickListener;
-import com.quandary.quandary.service.FliiikService;
+import com.quandary.quandary.db.FliiikGesture;
+import com.quandary.quandary.db.GesturesDatabaseHelper;
+import com.quandary.quandary.ui.FliiikHelper;
 import com.quandary.quandary.ui.PackageAdapter;
 import com.quandary.quandary.ui.PackageItem;
 
@@ -39,28 +45,21 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private PackageAdapter adapter;
+    private List<FliiikGesture> mAppList;
+    private AppAdapter mAdapter;
+
+    private PackageAdapter packageAdapter;
     private List<PackageItem> data;
 
     OnClickListener clickListener;
+    OnItemClickListener itemClickListener;
 
-    OnItemClickListener itemClickListenerTap;
-    OnItemClickListener itemClickListenerChop;
+    static final int ADD_GESTURE_REQUEST = 1;  // The request code
 
-    ImageView imageApp;
-    TextView textApp;
-    Switch switchApp;
+    private SwipeMenuListView mListView;
+    private PackageManager mPackageManager;
 
-    ImageView imageApp1;
-    TextView textApp1;
-    Switch switchApp1;
-
-    String mPackageNameTap = "";
-    Boolean mSetEnabledTap = false;
-    String mPackageNameChop = "";
-    Boolean mSetEnabledChop = false;
-
-    ConfigurationManager sharedConfigurationManager;
+    private FliiikGesture mCurrentGesture;
 
 
     @Override
@@ -68,109 +67,81 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        imageApp = (ImageView) findViewById(R.id.imageApp);
-        textApp = (TextView) findViewById(R.id.textApp);
-        switchApp = (Switch) findViewById(R.id.switch1);
+        mPackageManager = getPackageManager();
 
-        imageApp1 = (ImageView) findViewById(R.id.imageApp1);
-        textApp1 = (TextView) findViewById(R.id.textApp1);
-        switchApp1 = (Switch) findViewById(R.id.switch2);
+        mAppList = GesturesDatabaseHelper.getInstance(getApplicationContext()).getAllGestures();
+        mListView= (SwipeMenuListView) findViewById(R.id.listView);
+        mAdapter = new AppAdapter();
+        mListView.setAdapter(mAdapter);
 
-        sharedConfigurationManager = new ConfigurationManager(getApplicationContext());
+        // step 1. create a MenuCreator
+        SwipeMenuCreator creator = new SwipeMenuCreator() {
+
+            @Override
+            public void create(SwipeMenu menu) {
+                // create "delete" item
+                SwipeMenuItem deleteItem = new SwipeMenuItem(
+                        getApplicationContext());
+                // set item background
+                deleteItem.setBackground(new ColorDrawable(Color.rgb(0xF9,
+                        0x3F, 0x25)));
+                // set item width
+                deleteItem.setWidth(dp2px(90));
+                // set a icon
+                deleteItem.setIcon(R.drawable.ic_delete);
+                // add to menu
+                menu.addMenuItem(deleteItem);
+            }
+        };
+
+        // set creator
+        mListView.setMenuCreator(creator);
+
+        // step 2. listener item click event
+        mListView.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
+                FliiikGesture item = mAppList.get(position);
+                switch (index) {
+                    case 0:
+                        // delete
+                        if (mCurrentGesture != null && item.action.equalsIgnoreCase(mCurrentGesture.action)) {
+                            mCurrentGesture = null;
+                        }
+                        GesturesDatabaseHelper.getInstance(getApplicationContext()).deleteGesture(item);
+                        mAppList.remove(position);
+                        mAdapter.notifyDataSetChanged();
+                        break;
+                }
+                return false;
+            }
+        });
 
         clickListener = new OnClickListener() {
             @Override
             public void onClick(DialogPlus dialog, View view) {
                 switch (view.getId()) {
-                    case R.id.footer_close_button :
+                    case R.id.footer_close_button:
                         dialog.dismiss();
                 }
 
             }
         };
 
-        itemClickListenerTap = new OnItemClickListener() {
+        itemClickListener = new OnItemClickListener() {
             @Override
             public void onItemClick(DialogPlus dialog, Object item, View view, int position) {
-                PackageItem itemSelected =  (PackageItem)item;
-                String clickedAppName = itemSelected.getName();
-                imageApp.setImageDrawable(itemSelected.getIcon());
-                textApp.setText(clickedAppName);
+                PackageItem itemSelected = (PackageItem) item;
+                if (mCurrentGesture != null) {
+                    mCurrentGesture.packageName = itemSelected.getPackageName();
+                    GesturesDatabaseHelper.getInstance(getApplicationContext()).updateGesture(mCurrentGesture);
+                    mAdapter.notifyDataSetChanged();
+                }
                 dialog.dismiss();
-                Toast.makeText(MainActivity.this, clickedAppName + " selected", Toast.LENGTH_LONG).show();
-
-                mPackageNameTap = itemSelected.getPackageName();
-                sharedConfigurationManager.setActionPackageForTap(mPackageNameTap);
             }
         };
-
-        itemClickListenerChop = new OnItemClickListener() {
-            @Override
-            public void onItemClick(DialogPlus dialog, Object item, View view, int position) {
-                PackageItem itemSelected =  (PackageItem)item;
-                String clickedAppName = itemSelected.getName();
-                imageApp1.setImageDrawable(itemSelected.getIcon());
-                textApp1.setText(clickedAppName);
-                dialog.dismiss();
-                Toast.makeText(MainActivity.this, clickedAppName + " selected", Toast.LENGTH_LONG).show();
-
-                mPackageNameChop = itemSelected.getPackageName();
-                sharedConfigurationManager.setActionPackageForChop(mPackageNameChop);
-            }
-        };
-
 
         final PackageManager pm = getPackageManager();
-        PackageItem calcItem = null;
-        PackageItem phoneItem = null;
-
-        mSetEnabledTap = sharedConfigurationManager.getTapServiceEnabled();
-        switchApp.setChecked(mSetEnabledTap);
-
-        mPackageNameTap = sharedConfigurationManager.getActionPackageForTap();
-
-        if (mPackageNameTap != "") {
-            try {
-                if (pm.getLaunchIntentForPackage(mPackageNameTap) != null) {
-                    ApplicationInfo content = pm.getApplicationInfo(mPackageNameTap,0);
-                    String name  = getPackageManager().getApplicationLabel(content).toString();
-                    Drawable icon = getPackageManager().getDrawable(content.packageName, content.icon, content);
-
-                    calcItem = new PackageItem();
-                    calcItem.setPackageName(mPackageNameTap);
-                    calcItem.setIcon(icon);
-                    calcItem.setName(name);
-                }
-            } catch (Exception e) {
-                Log.e("", "Parse Application Manager Step1: " + e.toString());
-            } catch(Error e2) {
-                Log.e("", "Parse Application Manager Step 22: " + e2.toString());
-            }
-        }
-
-        mSetEnabledChop = sharedConfigurationManager.getChopServiceEnabled();
-        switchApp1.setChecked(mSetEnabledChop);
-
-        mPackageNameChop = sharedConfigurationManager.getActionPackageForChop();
-
-        if (mPackageNameChop != "") {
-            try {
-                if (pm.getLaunchIntentForPackage(mPackageNameChop) != null) {
-                    ApplicationInfo content = pm.getApplicationInfo(mPackageNameChop,0);
-                    String name  = getPackageManager().getApplicationLabel(content).toString();
-                    Drawable icon = getPackageManager().getDrawable(content.packageName, content.icon, content);
-
-                    phoneItem = new PackageItem();
-                    phoneItem.setPackageName(mPackageNameTap);
-                    phoneItem.setIcon(icon);
-                    phoneItem.setName(name);
-                }
-            } catch (Exception e) {
-                Log.e("", "Parse Application Manager Step1: " + e.toString());
-            } catch(Error e2) {
-                Log.e("", "Parse Application Manager Step 22: " + e2.toString());
-            }
-        }
 
         //Create Adapter
         data = new ArrayList<PackageItem>();
@@ -185,18 +156,10 @@ public class MainActivity extends AppCompatActivity {
                     item.setPackageName(content.packageName);
                     item.setIcon(getPackageManager().getDrawable(content.packageName, content.icon, content));
                     data.add(item);
-
-                    if( calcItem == null &&  content.packageName.toString().toLowerCase().contains("calcul")){
-                        calcItem = item;
-                    }
-
-                    if( phoneItem == null &&  content.packageName.toString().toLowerCase().contains("clock")){
-                        phoneItem = item;
-                    }
                 }
             } catch (Exception e) {
                 Log.e("", "Parse Application Manager: " + e.toString());
-            } catch(Error e2) {
+            } catch (Error e2) {
                 Log.e("", "Parse Application Manager 2: " + e2.toString());
             }
         }
@@ -207,65 +170,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        adapter = new PackageAdapter(this,data);
+        packageAdapter = new PackageAdapter(this, data);
 
-        if (calcItem != null) {
-
-            if (mPackageNameTap == "") {
-                mPackageNameTap = calcItem.getPackageName();
-                sharedConfigurationManager.setActionPackageForTap(mPackageNameTap);
-            }
-            imageApp.setImageDrawable(calcItem.getIcon());
-            textApp.setText(calcItem.getName());
-        }
-
-        if (phoneItem != null) {
-
-            if (mPackageNameChop == "") {
-                mPackageNameChop = phoneItem.getPackageName();
-                sharedConfigurationManager.setActionPackageForChop(mPackageNameChop);
-            }
-            imageApp1.setImageDrawable(phoneItem.getIcon());
-            textApp1.setText(phoneItem.getName());
-        }
-
-
-        final RelativeLayout layout = (RelativeLayout) findViewById(R.id.more);
-        layout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                changeApplication(true);
-            }
-        });
-
-        final RelativeLayout layout1 = (RelativeLayout) findViewById(R.id.more1);
-        layout1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                changeApplication(false);
-            }
-        });
-
-        switchApp.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                sharedConfigurationManager.setTapServiceEnabled(isChecked);
-            }
-        });
-
-        switchApp1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                sharedConfigurationManager.setChopServiceEnabled(isChecked);
-            }
-        });
-
-
-        //check if service is running and make sure service runs
-        if (!isMyServiceRunning(FliiikService.class)) {
-            Intent intent = new Intent(this,FliiikService.class);
-            this.startService(intent);
-        }
+//        //check if service is running and make sure service runs
+//        if (!isMyServiceRunning(FliiikService.class)) {
+//            Intent intent = new Intent(this, FliiikService.class);
+//            this.startService(intent);
+//        }
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -279,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_add:
+                showAddGestureActivity();
                 return true;
             default:
                 // If we got here, the user's action was not recognized.
@@ -290,18 +202,10 @@ public class MainActivity extends AppCompatActivity {
 
     //Change Application
 
-    private void changeApplication (boolean isTap) {
-
-        if (isTap) {
-            showCompleteDialog(new ListHolder(), Gravity.BOTTOM, adapter, clickListener, itemClickListenerTap,
-                    false);
-        } else {
-            showCompleteDialog(new ListHolder(), Gravity.BOTTOM, adapter, clickListener, itemClickListenerChop,
-                    false);
-        }
-
+    private void changeApplication() {
+        showCompleteDialog(new ListHolder(), Gravity.BOTTOM, packageAdapter, clickListener, itemClickListener,
+                false);
     }
-
 
     //Dialog plus
 
@@ -324,6 +228,8 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    // CHECK SERVICE RUNNING
+
     private boolean isMyServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -334,4 +240,129 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+
+    //NAVIGATION
+    private void showAddGestureActivity() {
+        Intent intent = new Intent(this, AddGestureActivity.class);
+        startActivityForResult(intent, ADD_GESTURE_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == ADD_GESTURE_REQUEST) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                mAppList = GesturesDatabaseHelper.getInstance(getApplicationContext()).getAllGestures();
+                mAdapter.notifyDataSetChanged();
+            }
+        }
+    }
+
+
+    class AppAdapter extends BaseAdapter {
+        @Override
+        public int getCount() {
+            return mAppList.size();
+        }
+
+        @Override
+        public FliiikGesture getItem(int position) {
+            return mAppList.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public int getViewTypeCount() {
+            // menu type count
+            return 1;
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            return 0;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = View.inflate(getApplicationContext(),
+                        R.layout.list_gesture_row, null);
+                new ViewHolder(convertView);
+            }
+            ViewHolder holder = (ViewHolder) convertView.getTag();
+
+            final FliiikGesture gesture = getItem(position);
+
+            Log.i("ListView loading", "Action = " + gesture.action + " Position = " + position + " Package = " + gesture.packageName);
+
+            holder.fk_title.setText(FliiikHelper.decodeActionString(gesture.action));
+            holder.fk_switch.setChecked(gesture.status);
+
+            holder.fk_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    mCurrentGesture = gesture;
+                    setCurrentGestureEnable(isChecked);
+                }
+            });
+
+
+            holder.fk_more.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mCurrentGesture = gesture;
+                    changeApplication();
+                }
+            });
+
+            if (gesture.packageName != null && gesture.packageName != "") {
+                try {
+                    ApplicationInfo content = mPackageManager.getApplicationInfo(gesture.packageName, 0);
+                    holder.fk_package.setText(mPackageManager.getApplicationLabel(content).toString());
+                    holder.fk_icon.setImageDrawable(mPackageManager.getDrawable(content.packageName, content.icon, content));
+                } catch (Exception e) {
+                    Log.e("", "Parse Application Manager: " + e.toString());
+                } catch (Error e2) {
+                    Log.e("", "Parse Application Manager 2: " + e2.toString());
+                }
+            } else {
+                holder.fk_icon.setImageDrawable(getDrawable(android.R.drawable.ic_menu_edit));
+                holder.fk_package.setText("Not Configured");
+            }
+            return convertView;
+        }
+
+        class ViewHolder {
+            TextView fk_title;
+            ImageView fk_icon;
+            TextView fk_package;
+            Switch fk_switch;
+            View fk_more;
+
+            public ViewHolder(View view) {
+                fk_title = (TextView) view.findViewById(R.id.textGesture);
+                fk_icon = (ImageView) view.findViewById(R.id.imageApp);
+                fk_package = (TextView) view.findViewById(R.id.textApp);
+                fk_switch = (Switch) view.findViewById(R.id.enableSwitch);
+                fk_more = view.findViewById(R.id.more);
+
+                view.setTag(this);
+            }
+        }
+    }
+
+    private void setCurrentGestureEnable(boolean isEnable) {
+        mCurrentGesture.status = isEnable;
+        GesturesDatabaseHelper.getInstance(getApplicationContext()).updateGesture(mCurrentGesture);
+    }
+
+    private int dp2px(int dp) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
+                getResources().getDisplayMetrics());
+    }
 }

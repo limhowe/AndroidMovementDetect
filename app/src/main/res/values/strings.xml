@@ -8,4 +8,5 @@
     <string name="footer_button_confirm">CONFIRM</string>
     <string name="footer_sample"> </string>
     <string name="title_activity_log">LogActivity</string>
+
 </resources>

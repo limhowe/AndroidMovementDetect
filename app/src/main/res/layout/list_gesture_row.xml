@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:gravity="center_vertical"
+        android:textColor="@color/colorPrimaryDark"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textStyle="bold"
+        android:text="Tap Tap Tap"
+        android:id="@+id/textGesture" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:id="@+id/layoutTap">
+
+        <RelativeLayout
+            android:id="@+id/more"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="?android:actionBarSize"
+            android:layout_marginLeft="20dp">
+
+            <ImageView
+                android:layout_width="?android:actionBarSize"
+                android:layout_height="?android:actionBarSize"
+                android:src="@android:drawable/ic_menu_edit"
+                android:layout_centerVertical="true"
+                android:layout_alignParentStart="true"
+                android:padding="10dp"
+
+                android:id="@+id/imageApp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/gray"
+                android:text="Not Configured"
+                android:id="@+id/textApp"
+                android:textSize="13sp"
+                android:layout_toRightOf="@+id/imageApp"
+                android:layout_centerVertical="true" />
+
+        </RelativeLayout>
+
+
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/enableSwitch"
+            android:layout_gravity="center_vertical" />
+
+    </LinearLayout>
+
+
+</LinearLayout>
+
