@@ -11,17 +11,18 @@ import com.quandary.quandary.db.FliiikGesture;
 import com.quandary.quandary.db.GesturesDatabaseHelper;
 import com.quandary.quandary.detector.move.FliiikMove;
 import com.quandary.quandary.filter.LowPassFilterSmoothing;
+import com.quandary.quandary.ui.FliiikHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class FliiikMoveDetector implements SensorEventListener {
 
-    private static final long DEFAULT_BUFFER_LENGTH = 4 * (long)Math.pow(10,9);
+    private static final long DEFAULT_BUFFER_LENGTH = (long)(3.5f * (long)Math.pow(10,9));
     private ArrayList<SensorBundle> mSensorBundles;
 
-    private static final float DEFAULT_DISTANCE_THRESHOLD = 3.4f;
-    private static final float DEFAULT_THRESHOLD_ACCELERATION = 2.0f;
+    private static final float DEFAULT_DISTANCE_THRESHOLD = 2.9f;
+    private static final float DEFAULT_THRESHOLD_ACCELERATION = 2.7f;
     private static final int INTERVAL = 200;
 
     private static SensorManager mSensorManager;
@@ -163,9 +164,9 @@ public class FliiikMoveDetector implements SensorEventListener {
             }
         }
 
-        if (checked) {
-            performCheck();
-        }
+//        if (checked) {
+//            performCheck();
+//        }
     }
 
     @Override
@@ -197,7 +198,7 @@ public class FliiikMoveDetector implements SensorEventListener {
     private void performCheck() {
         synchronized (mLock) {
 
-            if (mSensorBundles.size() < 11) {
+            if (mSupportedMoves == null || mSupportedMoves.size() == 0 || mSensorBundles.size() < 11) {
                 return;
             }
 
@@ -239,7 +240,7 @@ public class FliiikMoveDetector implements SensorEventListener {
                         if (yDirection < 0) {
                             sBody = sBody + FliiikConstant.Y_NEGATIVE;
                         } else {
-                            sBody = sBody + FliiikConstant.Y_NEGATIVE;
+                            sBody = sBody + FliiikConstant.Y_POSITIVE;
                         }
                     }
 
@@ -251,7 +252,7 @@ public class FliiikMoveDetector implements SensorEventListener {
                         if (zDirection < 0) {
                             sBody = sBody + FliiikConstant.Z_NEGATIVE;
                         } else {
-                            sBody = sBody + FliiikConstant.Z_NEGATIVE;
+                            sBody = sBody + FliiikConstant.Z_POSITIVE;
                         }
                     }
 
@@ -267,6 +268,21 @@ public class FliiikMoveDetector implements SensorEventListener {
                 zDirection = curZDirection;
 
                 baseBundle = currentBundle;
+            }
+
+            if (sBody == "") {
+                return;
+            }
+
+            for (FliiikGesture gesture : mSupportedMoves) {
+                if (FliiikHelper.compareActionString(sBody, gesture.action)) {
+                    mFliiikMoveListener.OnFliiikMove(gesture);
+
+                    mSensorBundles.clear();
+                    mLastSensorBundle = null;
+
+                    return;
+                }
             }
         }
     }

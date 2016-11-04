@@ -19,6 +19,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.quandary.quandary.db.FliiikGesture;
 import com.quandary.quandary.detector.FliiikMoveDetector;
 import com.quandary.quandary.detector.SensorBundle;
 import com.quandary.quandary.detector.move.FliiikMove;
@@ -29,7 +30,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-public class LogActivity extends AppCompatActivity {
+public class LogActivity extends AppCompatActivity implements  FliiikMoveDetector.OnFliiikMoveListener{
 
     TextView mTextLog;
     Button mBtnConfig;
@@ -83,140 +84,125 @@ public class LogActivity extends AppCompatActivity {
     }
 
     private void exportDB() {
+        double DEFAULT_DISTANCE_THRESHOLD = 2.9f;
 
-        String testStr = FliiikHelper.getActionAxisString("110");
-        StringBuilder testBuilder = new StringBuilder(testStr);
-        testBuilder.insert(2,1);
-        testBuilder.insert(4,6);
-        testStr = testBuilder.toString();
-        if (FliiikHelper.compareActionString(testStr, "110")) {
-            Toast.makeText(this,testStr + " - Compare Success",Toast.LENGTH_LONG).show();
-        } else {
-            Toast.makeText(this,testStr + " - Compare failed",Toast.LENGTH_LONG).show();
+        FliiikMoveDetector.stop();
+        List<SensorBundle> list = FliiikMoveDetector.getInstance().getBundleHistory();
+
+        if (list == null || list.size() < 6 ) {
+            Toast.makeText(this, "List size < 6", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-//        double DEFAULT_DISTANCE_THRESHOLD = 4;
+//        String sBody = "log;X;Y;Z\n";
+
+        String sBody = "";
+
+        SensorBundle baseBundle = list.get(0);
+        long baseTimestamp = baseBundle.getTimestamp();
+
+        SensorBundle currentBundle = list.get(1);
+
+        int xDirection = (currentBundle.getXAcc() - baseBundle.getXAcc()) > 0 ? 1 : -1;
+        int yDirection = (currentBundle.getYAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
+        int zDirection = (currentBundle.getZAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
+
+        double xDistance = currentBundle.getXAcc() - baseBundle.getXAcc();
+        double yDistance = currentBundle.getYAcc() - baseBundle.getYAcc();
+        double zDistance = currentBundle.getZAcc() - baseBundle.getZAcc();
+
+        baseBundle = currentBundle;
+
+        for (int i=2; i<list.size(); i++) {
+            currentBundle = list.get(i);
+
+            int curXDirection = (currentBundle.getXAcc() - baseBundle.getXAcc()) > 0 ? 1 : -1;
+            int curYDirection = (currentBundle.getYAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
+            int curZDirection = (currentBundle.getZAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
+
+            if (curXDirection != xDirection) {
+                if (Math.abs(xDistance) > DEFAULT_DISTANCE_THRESHOLD) {
+                    if (xDirection < 0) {
+                        sBody = sBody + FliiikConstant.X_NEGATIVE;
+                    } else {
+                        sBody = sBody + FliiikConstant.X_POSITIVE;
+                    }
+                }
+                xDistance = 0;
+            }
+
+            if (curYDirection != yDirection) {
+                if (Math.abs(yDistance) > DEFAULT_DISTANCE_THRESHOLD) {
+                    if (yDirection < 0) {
+                        sBody = sBody + FliiikConstant.Y_NEGATIVE;
+                    } else {
+                        sBody = sBody + FliiikConstant.Y_POSITIVE;
+                    }
+                }
+
+                yDistance = 0;
+            }
+
+            if (curZDirection != zDirection) {
+                if (Math.abs(zDistance) > DEFAULT_DISTANCE_THRESHOLD) {
+                    if (zDirection < 0) {
+                        sBody = sBody + FliiikConstant.Z_NEGATIVE;
+                    } else {
+                        sBody = sBody + FliiikConstant.Z_POSITIVE;
+                    }
+                }
+
+                zDistance = 0;
+            }
+
+            xDistance += currentBundle.getXAcc() - baseBundle.getXAcc();
+            yDistance += currentBundle.getYAcc() - baseBundle.getYAcc();
+            zDistance += currentBundle.getZAcc() - baseBundle.getZAcc();
+
+            xDirection = curXDirection;
+            yDirection = curYDirection;
+            zDirection = curZDirection;
+
+            baseBundle = currentBundle;
+        }
+
+        mTextLog.setText(sBody);
+
+        if (FliiikHelper.compareActionString(sBody, "000")) {
+            Toast.makeText(this, "TAP TAP TAP - Compare Success",Toast.LENGTH_LONG).show();
+        } else  if (FliiikHelper.compareActionString(sBody, "111")) {
+            Toast.makeText(this," CHOP CHOP CHOP - Compare Success",Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(this," Compare Fail",Toast.LENGTH_LONG).show();
+        }
+
+        //Save to File;
+
+//        try {
+//            File root = new File(Environment.getExternalStorageDirectory(), "Notes");
+//            if (!root.exists()) {
+//                root.mkdirs();
+//            }
+//            File gpxfile = new File(root, "analyzer.csv");
+//            FileWriter writer = new FileWriter(gpxfile);
 //
-//        FliiikMoveDetector.stop();
-//        List<SensorBundle> list = FliiikMoveDetector.getInstance().getBundleHistory();
+//            writer.append(sBody);
+//            writer.flush();
+//            writer.close();
 //
-//        if (list == null || list.size() < 6 ) {
-//            Toast.makeText(this, "List size < 6", Toast.LENGTH_SHORT).show();
-//            return;
+//            Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
 //        }
-//
-////        String sBody = "log;X;Y;Z\n";
-//
-//        String sBody = "Start - ";
-//
-//        SensorBundle baseBundle = list.get(0);
-//        long baseTimestamp = baseBundle.getTimestamp();
-//        sBody = sBody + baseBundle.toString(baseTimestamp) + "\n";
-//
-//        SensorBundle currentBundle = list.get(1);
-//
-//        int xDirection = (currentBundle.getXAcc() - baseBundle.getXAcc()) > 0 ? 1 : -1;
-//        int yDirection = (currentBundle.getYAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
-//        int zDirection = (currentBundle.getZAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
-//
-//        double xDistance = currentBundle.getXAcc() - baseBundle.getXAcc();
-//        double yDistance = currentBundle.getYAcc() - baseBundle.getYAcc();
-//        double zDistance = currentBundle.getZAcc() - baseBundle.getZAcc();
-//
-//        baseBundle = currentBundle;
-//
-//        for (int i=2; i<list.size(); i++) {
-//            currentBundle = list.get(i);
-//
-//            int curXDirection = (currentBundle.getXAcc() - baseBundle.getXAcc()) > 0 ? 1 : -1;
-//            int curYDirection = (currentBundle.getYAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
-//            int curZDirection = (currentBundle.getZAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
-//
-//            String elementS = "";
-//
-//            if (curXDirection != xDirection) {
-//                if (Math.abs(xDistance) > DEFAULT_DISTANCE_THRESHOLD) {
-//                    String element = "(";
-//                    if (xDirection < 0) {
-//                        element = element + "-";
-//                    }
-//
-//                    element = element + "X)";
-//
-//                    elementS = elementS + element;
-//                }
-//
-//                xDistance = 0;
-//            }
-//
-//            if (curYDirection != yDirection) {
-//                if (Math.abs(yDistance) > DEFAULT_DISTANCE_THRESHOLD) {
-//                    String element = "(";
-//                    if (yDirection < 0) {
-//                        element = element + "-";
-//                    }
-//
-//                    element = element + "Y)";
-//
-//                    elementS = elementS + element;
-//                }
-//
-//                yDistance = 0;
-//            }
-//
-//            if (curZDirection != zDirection) {
-//                if (Math.abs(zDistance) > DEFAULT_DISTANCE_THRESHOLD) {
-//                    String element = "(";
-//                    if (zDirection < 0) {
-//                        element = element + "-";
-//                    }
-//
-//                    element = element + "Z)";
-//
-//                    elementS = elementS + element;
-//                }
-//
-//                zDistance = 0;
-//            }
-//
-//            if (elementS != "") {
-//                sBody = sBody + " #" + elementS + "# ";
-//            }
-//
-//            xDistance += currentBundle.getXAcc() - baseBundle.getXAcc();
-//            yDistance += currentBundle.getYAcc() - baseBundle.getYAcc();
-//            zDistance += currentBundle.getZAcc() - baseBundle.getZAcc();
-//
-//            xDirection = curXDirection;
-//            yDirection = curYDirection;
-//            zDirection = curZDirection;
-//
-//            baseBundle = currentBundle;
-//        }
-//
-//        mTextLog.setText(sBody);
-//
-//        //Save to File;
-//
-////        try {
-////            File root = new File(Environment.getExternalStorageDirectory(), "Notes");
-////            if (!root.exists()) {
-////                root.mkdirs();
-////            }
-////            File gpxfile = new File(root, "analyzer.csv");
-////            FileWriter writer = new FileWriter(gpxfile);
-////
-////            writer.append(sBody);
-////            writer.flush();
-////            writer.close();
-////
-////            Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
-////
-////        } catch (IOException e) {
-////            e.printStackTrace();
-////        }
-//
-//        FliiikMoveDetector.start();
+
+        FliiikMoveDetector.start();
+
+    }
+
+
+    @Override
+    public void OnFliiikMove(FliiikGesture move) {
 
     }
 
