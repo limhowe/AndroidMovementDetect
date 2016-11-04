@@ -126,6 +126,46 @@ public class GesturesDatabaseHelper extends SQLiteOpenHelper {
         return posts;
     }
 
+    public List<FliiikGesture> getAllEnabledGestures() {
+        List<FliiikGesture> posts = new ArrayList<>();
+
+        String[] columns = {
+                KEY_GESTURE_ID,
+                KEY_GESTURE_ACTION,
+                KEY_PACKAGE_NAME,
+                KEY_STATUS
+        };
+
+        String selection = KEY_STATUS + " = ?";
+        String[] whereArgs = new String[]{"1"};
+        String sortOrder = KEY_GESTURE_ID + " ASC";
+
+        // "getReadableDatabase()" and "getWriteableDatabase()" return the same object (except under low
+        // disk space scenarios)
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query(TABLE_GUESTURE, columns, selection, whereArgs,null,null, sortOrder);
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    FliiikGesture newGesture = new FliiikGesture();
+                    newGesture.id = cursor.getInt(cursor.getColumnIndex(KEY_GESTURE_ID));
+                    newGesture.action = cursor.getString(cursor.getColumnIndex(KEY_GESTURE_ACTION));
+                    newGesture.packageName = cursor.getString(cursor.getColumnIndex(KEY_PACKAGE_NAME));
+                    newGesture.status = cursor.getInt(cursor.getColumnIndex(KEY_STATUS)) ==1;
+
+                    posts.add(newGesture);
+                } while(cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to get gestures from database");
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        return posts;
+    }
+
 
     // Insert a gesture into the database
     public void addGesture(FliiikGesture gesture) {

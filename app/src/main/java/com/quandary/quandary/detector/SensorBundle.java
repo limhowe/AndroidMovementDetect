@@ -51,11 +51,16 @@ public class SensorBundle {
 
     @Override
     public String toString() {
-        return "SensorBundle{" +
-                "mXAcc=" + mXAcc +
-                ", mYAcc=" + mYAcc +
-                ", mZAcc=" + mZAcc +
-                ", mTimestamp=" + mTimestamp +
-                '}';
+        return "T" + mTimestamp +
+                ";" + mXAcc +
+                ";" + mYAcc +
+                ";" + mZAcc;
+    }
+
+    public String toString(long baseTimestamp) {
+        return "T" + ((mTimestamp - baseTimestamp) / 1000000) +
+                ";" + mXAcc +
+                ";" + mYAcc +
+                ";" + mZAcc;
     }
 }

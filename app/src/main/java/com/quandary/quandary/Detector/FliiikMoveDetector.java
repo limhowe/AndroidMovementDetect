@@ -5,18 +5,22 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.util.Log;
 
+import com.quandary.quandary.FliiikConstant;
+import com.quandary.quandary.db.FliiikGesture;
+import com.quandary.quandary.db.GesturesDatabaseHelper;
 import com.quandary.quandary.detector.move.FliiikMove;
-import com.quandary.quandary.detector.move.FliiikMoveTap;
 import com.quandary.quandary.filter.LowPassFilterSmoothing;
-import com.quandary.quandary.filter.MeanFilterSmoothing;
-import com.quandary.quandary.filter.MedianFilterSmoothing;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class FliiikMoveDetector implements SensorEventListener {
 
+    private static final long DEFAULT_BUFFER_LENGTH = 4 * (long)Math.pow(10,9);
+    private ArrayList<SensorBundle> mSensorBundles;
+
+    private static final float DEFAULT_DISTANCE_THRESHOLD = 3.4f;
     private static final float DEFAULT_THRESHOLD_ACCELERATION = 2.0f;
     private static final int INTERVAL = 200;
 
@@ -24,24 +28,17 @@ public class FliiikMoveDetector implements SensorEventListener {
     private static FliiikMoveDetector mSensorEventListener;
 
     private FliiikMoveDetector.OnFliiikMoveListener mFliiikMoveListener;
-    private ArrayList<SensorBundle> mSensorBundles;
+
     private Object mLock;
     private float mThresholdAcceleration;
-
     private SensorBundle mLastSensorBundle;
 
-    protected MeanFilterSmoothing meanFilterAccelSmoothing;
-    protected MedianFilterSmoothing medianFilterAccelSmoothing;
-    protected LowPassFilterSmoothing lpfAccelSmoothing;
-
-    protected boolean meanFilterSmoothingEnabled;
-    protected boolean medianFilterSmoothingEnabled;
-    protected boolean lpfSmoothingEnabled;
-
-    private String[] axises = {"X", "Y" , "Z" };
+    LowPassFilterSmoothing mLpSmoother;
     protected volatile float[] acceleration = new float[3];
 
-    private ArrayList<FliiikMove> mSupportedMoves;
+    private Context mContext;
+
+    List<FliiikGesture> mSupportedMoves;
 
     /**
      * Interface definition for a callback to be invoked when the device has performed one of fliiikmove.
@@ -50,26 +47,22 @@ public class FliiikMoveDetector implements SensorEventListener {
         /**
          * Called when the device has performed one of fliiikmove.
          */
-        public void OnFliiikMove(FliiikMove move);
+        void OnFliiikMove(FliiikGesture move);
     }
 
-    private FliiikMoveDetector(FliiikMoveDetector.OnFliiikMoveListener listener) {
-        if (listener == null) {
-            throw new IllegalArgumentException("FliikMove listener must not be null");
-        }
+    private FliiikMoveDetector(Context context, FliiikMoveDetector.OnFliiikMoveListener listener) {
+//        if (listener == null ||context == null ) {
+//            throw new IllegalArgumentException("FliikMove listener and context must not be null");
+//        }
+
+        mContext = context;
         mFliiikMoveListener = listener;
         mSensorBundles = new ArrayList<SensorBundle>();
         mLock = new Object();
         mThresholdAcceleration = DEFAULT_THRESHOLD_ACCELERATION;
-
-
-        meanFilterAccelSmoothing = new MeanFilterSmoothing();
-        medianFilterAccelSmoothing = new MedianFilterSmoothing();
-        lpfAccelSmoothing = new LowPassFilterSmoothing();
-
+        mLpSmoother = new LowPassFilterSmoothing();
         mLastSensorBundle = null;
-        mSupportedMoves = new ArrayList<FliiikMove>();
-        mSupportedMoves.add(new FliiikMoveTap()); // Add support FliiikMoveTap
+        mSupportedMoves = GesturesDatabaseHelper.getInstance(mContext).getAllEnabledGestures();
     }
 
     /**
@@ -88,7 +81,7 @@ public class FliiikMoveDetector implements SensorEventListener {
         if (mSensorManager == null) {
             mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         }
-        mSensorEventListener = new FliiikMoveDetector(listener);
+        mSensorEventListener = new FliiikMoveDetector(context, listener);
 
         return mSensorManager.registerListener(mSensorEventListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_GAME);
     }
@@ -119,6 +112,10 @@ public class FliiikMoveDetector implements SensorEventListener {
         mSensorEventListener = null;
     }
 
+    public static FliiikMoveDetector getInstance () {
+        return mSensorEventListener;
+    }
+
     /**
      * You can update the configuration of the Fliiikmove detector based on your usage but the default settings
      * should work for the majority of cases. It uses {@link FliiikMoveDetector#DEFAULT_THRESHOLD_ACCELERATION}
@@ -128,44 +125,41 @@ public class FliiikMoveDetector implements SensorEventListener {
      *                    as a fliiikmove. The higher number you go, the harder you have to fliiikmove your
      *                    device to trigger a move.
      */
-    public static void updateConfiguration(float sensibility, boolean meanFilterSmoothingEnabled, boolean medianFilterSmoothingEnabled, boolean lpfSmoothingEnabled) {
-        mSensorEventListener.setConfiguration(sensibility,meanFilterSmoothingEnabled,medianFilterSmoothingEnabled,lpfSmoothingEnabled);
+    public static void updateConfiguration(float sensibility) {
+        mSensorEventListener.setConfiguration(sensibility);
     }
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
 
         System.arraycopy(sensorEvent.values, 0, acceleration, 0, sensorEvent.values.length);
-
-        if (meanFilterSmoothingEnabled)
-        {
-            acceleration = meanFilterAccelSmoothing
-                    .addSamples(acceleration);
-        }
-
-        if (medianFilterSmoothingEnabled)
-        {
-            acceleration = medianFilterAccelSmoothing
-                    .addSamples(acceleration);
-        }
-
-        if (lpfSmoothingEnabled)
-        {
-            acceleration = lpfAccelSmoothing.addSamples(acceleration);
-        }
+        acceleration = mLpSmoother.addSamples(acceleration);
 
         SensorBundle sensorBundle = new SensorBundle(acceleration[0], acceleration[1], acceleration[2], sensorEvent.timestamp);
-
 
         boolean checked = false;
 
         synchronized (mLock) {
             if (mLastSensorBundle == null) {
+                mSensorBundles.clear();
                 mSensorBundles.add(sensorBundle);
-                checked = true;
+                mLastSensorBundle = sensorBundle;
             } else if (sensorBundle.getTimestamp() - mLastSensorBundle.getTimestamp() > INTERVAL) {
-                mSensorBundles.add(sensorBundle);
-                checked = true;
+
+                double xForce = (sensorBundle.getXAcc() - mLastSensorBundle.getXAcc());
+                double yForce = (sensorBundle.getYAcc() - mLastSensorBundle.getYAcc());
+                double zForce = (sensorBundle.getZAcc() - mLastSensorBundle.getZAcc());
+
+                double changeLength = xForce * xForce +
+                        yForce * yForce +
+                        zForce * zForce;
+                double gForce = Math.sqrt(changeLength);
+                if (gForce > mThresholdAcceleration) {
+                    reduceBuffer(sensorBundle.getTimestamp());
+                    mSensorBundles.add(sensorBundle);
+                    mLastSensorBundle = sensorBundle;
+                    checked = true;
+                }
             }
         }
 
@@ -179,65 +173,111 @@ public class FliiikMoveDetector implements SensorEventListener {
         // The accuracy is not likely to change on a real device. Just ignore it.
     }
 
-    private void setConfiguration(float sensibility, boolean meanFilterSmoothingEnabled, boolean medianFilterSmoothingEnabled, boolean lpfSmoothingEnabled) {
+    private void setConfiguration(float sensibility) {
         mThresholdAcceleration = sensibility;
 
-        this.meanFilterSmoothingEnabled = meanFilterSmoothingEnabled;
-        this.medianFilterSmoothingEnabled = medianFilterSmoothingEnabled;
-        this.lpfSmoothingEnabled = lpfSmoothingEnabled;
-
         synchronized (mLock) {
+            mLastSensorBundle = null;
             mSensorBundles.clear();
+        }
+    }
+
+    private void reduceBuffer(long currentTimeStamp) {
+        while (true) {
+            if (mSensorBundles.size() == 0) return;
+            SensorBundle sensorBundle = mSensorBundles.get(0);
+            if (currentTimeStamp - sensorBundle.getTimestamp() > DEFAULT_BUFFER_LENGTH) {
+                mSensorBundles.remove(0);
+            } else {
+                return;
+            }
         }
     }
 
     private void performCheck() {
         synchronized (mLock) {
-            for (int i=0; i<mSensorBundles.size(); i++) {
 
-                SensorBundle sensorBundle = mSensorBundles.get(i);
-
-                if (mLastSensorBundle == null) {
-                    mLastSensorBundle =  sensorBundle;
-                    continue;
-                }
-
-                SensorBundle changeBundle = new SensorBundle(sensorBundle.getXAcc() - mLastSensorBundle.getXAcc(),
-                        sensorBundle.getYAcc() - mLastSensorBundle.getYAcc(),
-                        sensorBundle.getZAcc() - mLastSensorBundle.getZAcc(),
-                        sensorBundle.getTimestamp());
-
-                for (int j=0; j<mSupportedMoves.size(); j++) {
-                    FliiikMove fliiikMove = mSupportedMoves.get(j);
-                    FliiikMove.FliiikMoveStatus resultStatus = fliiikMove.performCheck(changeBundle);
-                    if (resultStatus == FliiikMove.FliiikMoveStatus.COMPLETE) {
-                        mFliiikMoveListener.OnFliiikMove(fliiikMove);
-                        resetSupportedMoves(j);
-                        break;
-                    } else if (resultStatus == FliiikMove.FliiikMoveStatus.PROGRESS) {
-                        Log.i("MOVE-TAP :", fliiikMove.toString());
-                    }
-                }
-
-                mLastSensorBundle = sensorBundle;
+            if (mSensorBundles.size() < 11) {
+                return;
             }
 
-            mSensorBundles.clear();
+            SensorBundle baseBundle = mSensorBundles.get(0);
+            SensorBundle currentBundle = mSensorBundles.get(1);
+
+            int xDirection = (currentBundle.getXAcc() - baseBundle.getXAcc()) > 0 ? 1 : -1;
+            int yDirection = (currentBundle.getYAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
+            int zDirection = (currentBundle.getZAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
+
+            double xDistance = currentBundle.getXAcc() - baseBundle.getXAcc();
+            double yDistance = currentBundle.getYAcc() - baseBundle.getYAcc();
+            double zDistance = currentBundle.getZAcc() - baseBundle.getZAcc();
+
+            baseBundle = currentBundle;
+
+            String sBody = "";
+
+            for (int i=2; i<mSensorBundles.size(); i++) {
+                currentBundle = mSensorBundles.get(i);
+
+                int curXDirection = (currentBundle.getXAcc() - baseBundle.getXAcc()) > 0 ? 1 : -1;
+                int curYDirection = (currentBundle.getYAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
+                int curZDirection = (currentBundle.getZAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
+
+                if (curXDirection != xDirection) {
+                    if (Math.abs(xDistance) > DEFAULT_DISTANCE_THRESHOLD) {
+                        if (xDirection < 0) {
+                            sBody = sBody + FliiikConstant.X_NEGATIVE;
+                        } else {
+                            sBody = sBody + FliiikConstant.X_POSITIVE;
+                        }
+                    }
+                    xDistance = 0;
+                }
+
+                if (curYDirection != yDirection) {
+                    if (Math.abs(yDistance) > DEFAULT_DISTANCE_THRESHOLD) {
+                        if (yDirection < 0) {
+                            sBody = sBody + FliiikConstant.Y_NEGATIVE;
+                        } else {
+                            sBody = sBody + FliiikConstant.Y_NEGATIVE;
+                        }
+                    }
+
+                    yDistance = 0;
+                }
+
+                if (curZDirection != zDirection) {
+                    if (Math.abs(zDistance) > DEFAULT_DISTANCE_THRESHOLD) {
+                        if (zDirection < 0) {
+                            sBody = sBody + FliiikConstant.Z_NEGATIVE;
+                        } else {
+                            sBody = sBody + FliiikConstant.Z_NEGATIVE;
+                        }
+                    }
+
+                    zDistance = 0;
+                }
+
+                xDistance += currentBundle.getXAcc() - baseBundle.getXAcc();
+                yDistance += currentBundle.getYAcc() - baseBundle.getYAcc();
+                zDistance += currentBundle.getZAcc() - baseBundle.getZAcc();
+
+                xDirection = curXDirection;
+                yDirection = curYDirection;
+                zDirection = curZDirection;
+
+                baseBundle = currentBundle;
+            }
         }
     }
 
     private void resetSupportedMoves() {
-        for (FliiikMove fliiikMove: mSupportedMoves) {
-            fliiikMove.resetMove();
+        synchronized (mLock) {
+            mSupportedMoves = GesturesDatabaseHelper.getInstance(mContext).getAllEnabledGestures();
         }
     }
 
-    private void resetSupportedMoves(int idExcpetion) {
-        for (int i=0; i<mSupportedMoves.size(); i++) {
-            if (i == idExcpetion) continue;;
-            FliiikMove fliiikMove = mSupportedMoves.get(i);
-            fliiikMove.resetMove();
-        }
+    public List<SensorBundle> getBundleHistory() {
+        return mSensorBundles;
     }
-
 }

@@ -5,14 +5,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
 
-import com.quandary.quandary.ConfigurationManager;
-import com.quandary.quandary.detector.FliiikDetector;
+import com.quandary.quandary.db.FliiikGesture;
+import com.quandary.quandary.detector.FliiikMoveDetector;
 
 /**
  * Created by lim on 9/21/16.
  */
 
-public class FliiikService extends Service implements FliiikDetector.OnFliiikListener, ScreenListener {
+public class FliiikService extends Service implements FliiikMoveDetector.OnFliiikMoveListener, ScreenListener {
     /**
      * A constructor is required, and must call the super IntentService(String)
      * constructor with a name for the worker thread.
@@ -21,7 +21,6 @@ public class FliiikService extends Service implements FliiikDetector.OnFliiikLis
     private static final float SENSIBILITY = 3;
     private static final int SHAKE_NUMBER = 2;
 
-    ConfigurationManager sharedConfigurationManager;
     ScreenReceiver mScreenStateReceiver;
 
     boolean shakeStarted;
@@ -35,10 +34,8 @@ public class FliiikService extends Service implements FliiikDetector.OnFliiikLis
     public void onCreate() {
         super.onCreate();
 
-        sharedConfigurationManager = new ConfigurationManager(getApplicationContext());
-
-        if (FliiikDetector.create(this, this)) {
-            FliiikDetector.updateConfiguration(SENSIBILITY, SHAKE_NUMBER);
+        if (FliiikMoveDetector.create(this, null)) {
+            FliiikMoveDetector.updateConfiguration(2.7f);
         }
 
         IntentFilter screenStateFilter = new IntentFilter();
@@ -52,8 +49,8 @@ public class FliiikService extends Service implements FliiikDetector.OnFliiikLis
 
     @Override
     public void onDestroy() {
-        FliiikDetector.stop();
-        FliiikDetector.destroy();
+        FliiikMoveDetector.stop();
+        FliiikMoveDetector.destroy();
 
         unregisterReceiver(mScreenStateReceiver);
         super.onDestroy();
@@ -66,57 +63,26 @@ public class FliiikService extends Service implements FliiikDetector.OnFliiikLis
     }
 
     @Override
-    public void OnFliiik(int index) {
-        if (index == 0) { // TAPTAPTAP
-            try {
-                Boolean isTapEnabled = sharedConfigurationManager.getTapServiceEnabled();
-                String packageNameTap = sharedConfigurationManager.getActionPackageForTap();
-
-                if (isTapEnabled && packageNameTap != "") {
-                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage(packageNameTap);
-                    if (launchIntent != null) {
-                        launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-                        startActivity(launchIntent);//null pointer check in case package name was not found
-                    }
-                }
-            } catch (Exception e) {
-
-            } catch (Error er) {
-
-            }
-        } else {
-            try {
-                Boolean isChopEnabled = sharedConfigurationManager.getChopServiceEnabled();
-                String packageNameChop = sharedConfigurationManager.getActionPackageForChop();
-
-                if (isChopEnabled && packageNameChop != "") {
-                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage(packageNameChop);
-                    if (launchIntent != null) {
-                        launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-                        startActivity(launchIntent);//null pointer check in case package name was not found
-                    }
-                }
-            } catch (Exception e) {
-
-            } catch (Error er) {
-
-            }
-        }
+    public void OnFliiikMove(FliiikGesture move) {
+//        Intent launchIntent = getPackageManager().getLaunchIntentForPackage(packageNameTap);
+//        if (launchIntent != null) {
+//            launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+//            startActivity(launchIntent);//null pointer check in case package name was not found
+//        }
     }
 
     public void onScreenOff() {
 
         if (shakeStarted == true) {
-            FliiikDetector.stop();
+            FliiikMoveDetector.stop();
             shakeStarted = false;
         }
     }
 
     public void onScreenOn() {
         if (shakeStarted == false) {
-            FliiikDetector.start();
+            FliiikMoveDetector.start();
             shakeStarted = true;
         }
     }
-
 }
