@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.quandary.quandary.db.FliiikGesture;
 import com.quandary.quandary.detector.FliiikMoveDetector;
@@ -34,7 +35,7 @@ public class FliiikService extends Service implements FliiikMoveDetector.OnFliii
     public void onCreate() {
         super.onCreate();
 
-        if (FliiikMoveDetector.create(this, null)) {
+        if (FliiikMoveDetector.create(getApplicationContext(), this)) {
             FliiikMoveDetector.updateConfiguration(2.7f);
         }
 
@@ -59,16 +60,23 @@ public class FliiikService extends Service implements FliiikMoveDetector.OnFliii
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+
+        Log.d("Fliiik Service", "Start Command Accepted");
+
+        FliiikMoveDetector.stop();
+        FliiikMoveDetector.start();
         return START_STICKY;
     }
 
     @Override
     public void OnFliiikMove(FliiikGesture move) {
-//        Intent launchIntent = getPackageManager().getLaunchIntentForPackage(packageNameTap);
-//        if (launchIntent != null) {
-//            launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-//            startActivity(launchIntent);//null pointer check in case package name was not found
-//        }
+
+        Log.d("Fliiik Service", move.action + " detected");
+        Intent launchIntent = getPackageManager().getLaunchIntentForPackage(move.packageName);
+        if (launchIntent != null) {
+            launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+            startActivity(launchIntent);//null pointer check in case package name was not found
+        }
     }
 
     public void onScreenOff() {

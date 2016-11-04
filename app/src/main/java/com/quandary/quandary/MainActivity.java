@@ -7,6 +7,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,6 +35,7 @@ import com.orhanobut.dialogplus.OnClickListener;
 import com.orhanobut.dialogplus.OnItemClickListener;
 import com.quandary.quandary.db.FliiikGesture;
 import com.quandary.quandary.db.GesturesDatabaseHelper;
+import com.quandary.quandary.service.FliiikService;
 import com.quandary.quandary.ui.FliiikHelper;
 import com.quandary.quandary.ui.PackageAdapter;
 import com.quandary.quandary.ui.PackageItem;
@@ -70,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         mPackageManager = getPackageManager();
 
         mAppList = GesturesDatabaseHelper.getInstance(getApplicationContext()).getAllGestures();
-        mListView= (SwipeMenuListView) findViewById(R.id.listView);
+        mListView = (SwipeMenuListView) findViewById(R.id.listView);
         mAdapter = new AppAdapter();
         mListView.setAdapter(mAdapter);
 
@@ -111,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
                         GesturesDatabaseHelper.getInstance(getApplicationContext()).deleteGesture(item);
                         mAppList.remove(position);
                         mAdapter.notifyDataSetChanged();
+                        sendUpdateMessageToService();
                         break;
                 }
                 return false;
@@ -135,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
                 if (mCurrentGesture != null) {
                     mCurrentGesture.packageName = itemSelected.getPackageName();
                     GesturesDatabaseHelper.getInstance(getApplicationContext()).updateGesture(mCurrentGesture);
+                    sendUpdateMessageToService();
                     mAdapter.notifyDataSetChanged();
                 }
                 dialog.dismiss();
@@ -172,11 +176,12 @@ public class MainActivity extends AppCompatActivity {
 
         packageAdapter = new PackageAdapter(this, data);
 
-//        //check if service is running and make sure service runs
-//        if (!isMyServiceRunning(FliiikService.class)) {
-//            Intent intent = new Intent(this, FliiikService.class);
-//            this.startService(intent);
-//        }
+        //check if service is running and make sure service runs
+        if (!isMyServiceRunning(FliiikService.class)) {
+            Intent intent = new Intent(this, FliiikService.class);
+            intent.putExtra("FliiikCommand", "startService");
+            this.startService(intent);
+        }
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -255,6 +260,7 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 mAppList = GesturesDatabaseHelper.getInstance(getApplicationContext()).getAllGestures();
                 mAdapter.notifyDataSetChanged();
+                sendUpdateMessageToService();
             }
         }
     }
@@ -359,10 +365,17 @@ public class MainActivity extends AppCompatActivity {
     private void setCurrentGestureEnable(boolean isEnable) {
         mCurrentGesture.status = isEnable;
         GesturesDatabaseHelper.getInstance(getApplicationContext()).updateGesture(mCurrentGesture);
+        sendUpdateMessageToService();
     }
 
     private int dp2px(int dp) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
                 getResources().getDisplayMetrics());
+    }
+
+    private void sendUpdateMessageToService() {
+        Intent serviceIntent = new Intent(this,FliiikService.class);
+        serviceIntent.putExtra("FliiikCommand", "UpdateSupportMoves");
+        this.startService(serviceIntent);
     }
 }

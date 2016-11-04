@@ -52,9 +52,9 @@ public class FliiikMoveDetector implements SensorEventListener {
     }
 
     private FliiikMoveDetector(Context context, FliiikMoveDetector.OnFliiikMoveListener listener) {
-//        if (listener == null ||context == null ) {
-//            throw new IllegalArgumentException("FliikMove listener and context must not be null");
-//        }
+        if (listener == null ||context == null ) {
+            throw new IllegalArgumentException("FliikMove listener and context must not be null");
+        }
 
         mContext = context;
         mFliiikMoveListener = listener;
@@ -90,6 +90,7 @@ public class FliiikMoveDetector implements SensorEventListener {
 
     public static boolean start() {
         if (mSensorManager != null && mSensorEventListener != null) {
+            mSensorEventListener.resetSupportedMoves();
             return mSensorManager.registerListener(mSensorEventListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_GAME);
         }
         return false;
@@ -164,9 +165,9 @@ public class FliiikMoveDetector implements SensorEventListener {
             }
         }
 
-//        if (checked) {
-//            performCheck();
-//        }
+        if (checked) {
+            performCheck();
+        }
     }
 
     @Override
@@ -279,7 +280,6 @@ public class FliiikMoveDetector implements SensorEventListener {
                     mFliiikMoveListener.OnFliiikMove(gesture);
 
                     mSensorBundles.clear();
-                    mLastSensorBundle = null;
 
                     return;
                 }
