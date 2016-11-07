@@ -31,6 +31,7 @@ public class FliiikMoveDetector implements SensorEventListener {
 
     private Object mLock;
     private float mThresholdAcceleration;
+    private float mThresholdDistanceThreshold;
     private SensorBundle mLastSensorBundle;
 
     LowPassFilterSmoothing mLpSmoother;
@@ -60,6 +61,7 @@ public class FliiikMoveDetector implements SensorEventListener {
         mSensorBundles = new ArrayList<SensorBundle>();
         mLock = new Object();
         mThresholdAcceleration = DEFAULT_THRESHOLD_ACCELERATION;
+        mThresholdDistanceThreshold = DEFAULT_DISTANCE_THRESHOLD;
         mLpSmoother = new LowPassFilterSmoothing();
         mLastSensorBundle = null;
         mSupportedMoves = GesturesDatabaseHelper.getInstance(mContext).getAllEnabledGestures();
@@ -117,17 +119,8 @@ public class FliiikMoveDetector implements SensorEventListener {
         return mSensorEventListener;
     }
 
-    /**
-     * You can update the configuration of the Fliiikmove detector based on your usage but the default settings
-     * should work for the majority of cases. It uses {@link FliiikMoveDetector#DEFAULT_THRESHOLD_ACCELERATION}
-     * for the sensibility
-     *
-     * @param sensibility The sensibility, in G, is the minimum acceleration need to be considered
-     *                    as a fliiikmove. The higher number you go, the harder you have to fliiikmove your
-     *                    device to trigger a move.
-     */
-    public static void updateConfiguration(float sensibility) {
-        mSensorEventListener.setConfiguration(sensibility);
+    public static void updateConfiguration(float motionSensibility, float distanceSensibility) {
+        mSensorEventListener.setConfiguration(motionSensibility,distanceSensibility);
     }
 
     @Override
@@ -174,8 +167,9 @@ public class FliiikMoveDetector implements SensorEventListener {
         // The accuracy is not likely to change on a real device. Just ignore it.
     }
 
-    private void setConfiguration(float sensibility) {
-        mThresholdAcceleration = sensibility;
+    private void setConfiguration(float motionSensibility, float distanceSensibility) {
+        mThresholdAcceleration = motionSensibility;
+        mThresholdDistanceThreshold = distanceSensibility;
 
         synchronized (mLock) {
             mLastSensorBundle = null;
@@ -225,7 +219,7 @@ public class FliiikMoveDetector implements SensorEventListener {
                 int curZDirection = (currentBundle.getZAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
 
                 if (curXDirection != xDirection) {
-                    if (Math.abs(xDistance) > DEFAULT_DISTANCE_THRESHOLD) {
+                    if (Math.abs(xDistance) > mThresholdDistanceThreshold) {
                         if (xDirection < 0) {
                             sBody = sBody + FliiikConstant.X_NEGATIVE;
                         } else {
@@ -236,7 +230,7 @@ public class FliiikMoveDetector implements SensorEventListener {
                 }
 
                 if (curYDirection != yDirection) {
-                    if (Math.abs(yDistance) > DEFAULT_DISTANCE_THRESHOLD) {
+                    if (Math.abs(yDistance) > mThresholdDistanceThreshold) {
                         if (yDirection < 0) {
                             sBody = sBody + FliiikConstant.Y_NEGATIVE;
                         } else {
@@ -248,7 +242,7 @@ public class FliiikMoveDetector implements SensorEventListener {
                 }
 
                 if (curZDirection != zDirection) {
-                    if (Math.abs(zDistance) > DEFAULT_DISTANCE_THRESHOLD) {
+                    if (Math.abs(zDistance) > mThresholdDistanceThreshold) {
                         if (zDirection < 0) {
                             sBody = sBody + FliiikConstant.Z_NEGATIVE;
                         } else {

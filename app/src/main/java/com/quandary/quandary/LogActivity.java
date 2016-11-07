@@ -22,7 +22,6 @@ import android.widget.Toast;
 import com.quandary.quandary.db.FliiikGesture;
 import com.quandary.quandary.detector.FliiikMoveDetector;
 import com.quandary.quandary.detector.SensorBundle;
-import com.quandary.quandary.detector.move.FliiikMove;
 import com.quandary.quandary.ui.FliiikHelper;
 
 import java.io.File;
@@ -65,7 +64,7 @@ public class LogActivity extends AppCompatActivity implements  FliiikMoveDetecto
         });
 
         if (FliiikMoveDetector.create(this, null)) {
-            FliiikMoveDetector.updateConfiguration(2.7f);
+            FliiikMoveDetector.updateConfiguration(2.7f, 2.9f);
         }
 
         mTextLog = (TextView) findViewById(R.id.textLog);
@@ -76,7 +75,7 @@ public class LogActivity extends AppCompatActivity implements  FliiikMoveDetecto
             public void onClick(View v) {
                 float sensibility = Float.parseFloat(editSensibility.getText().toString());
                 FliiikMoveDetector.stop();
-                FliiikMoveDetector.updateConfiguration(sensibility);
+                FliiikMoveDetector.updateConfiguration(sensibility, 2.9f);
                 FliiikMoveDetector.start();
             }
         });

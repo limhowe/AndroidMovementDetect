@@ -3,9 +3,11 @@ package com.quandary.quandary.service;
 import android.app.Service;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.quandary.quandary.ConfigurationManager;
 import com.quandary.quandary.db.FliiikGesture;
 import com.quandary.quandary.detector.FliiikMoveDetector;
 
@@ -26,6 +28,9 @@ public class FliiikService extends Service implements FliiikMoveDetector.OnFliii
 
     boolean shakeStarted;
 
+    ConfigurationManager sharedConfigurationManager;
+
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -35,8 +40,13 @@ public class FliiikService extends Service implements FliiikMoveDetector.OnFliii
     public void onCreate() {
         super.onCreate();
 
+        sharedConfigurationManager = new ConfigurationManager(getApplicationContext());
+
+        float motionSensor = sharedConfigurationManager.getMotionSensibility();
+        float distanceSensor = sharedConfigurationManager.getDistanceSensibility();
+
         if (FliiikMoveDetector.create(getApplicationContext(), this)) {
-            FliiikMoveDetector.updateConfiguration(2.7f);
+            FliiikMoveDetector.updateConfiguration(motionSensor, distanceSensor);
         }
 
         IntentFilter screenStateFilter = new IntentFilter();
@@ -63,8 +73,25 @@ public class FliiikService extends Service implements FliiikMoveDetector.OnFliii
 
         Log.d("Fliiik Service", "Start Command Accepted");
 
-        FliiikMoveDetector.stop();
-        FliiikMoveDetector.start();
+        if (intent != null) {
+            Bundle extras = intent.getExtras();
+            if (extras != null) {
+                if (extras.containsKey("FliiikCommand")) {
+                    FliiikMoveDetector.stop();
+
+                    String command = extras.getString("FliiikCommand");
+
+                    if (command.equalsIgnoreCase("config")) {
+                        float motionSensor = sharedConfigurationManager.getMotionSensibility();
+                        float distanceSensor = sharedConfigurationManager.getDistanceSensibility();
+                        FliiikMoveDetector.updateConfiguration(motionSensor, distanceSensor);
+                    }
+
+                    FliiikMoveDetector.start();
+                }
+            }
+        }
+
         return START_STICKY;
     }
 

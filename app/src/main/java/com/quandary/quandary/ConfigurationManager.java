@@ -15,44 +15,24 @@ public class ConfigurationManager {
 
     public ConfigurationManager(Context context) {
         pref = context.getSharedPreferences(PREFERENCE_NAME, Activity.MODE_PRIVATE);
-    }
+}
 
-    public void setActionPackageForTap(String packageName) {
+    public void setMotionSensibility(float motionSensibility) {
         SharedPreferences.Editor editor = pref.edit();
-        editor.putString("fTapPackage", packageName);
+        editor.putFloat("fMotionSensor", motionSensibility);
         editor.commit();
     }
 
-    public void setActionPackageForChop(String packageName) {
+    public void setDistanceSensibility(float distanceSensibility) {
         SharedPreferences.Editor editor = pref.edit();
-        editor.putString("fChopPackage", packageName);
+        editor.putFloat("fDistanceSensor", distanceSensibility);
         editor.commit();
     }
 
-    public void setTapServiceEnabled(Boolean isEnabled) {
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putBoolean("fTapEnabled", isEnabled);
-        editor.commit();
+    public float getMotionSensibility() {
+        return  pref.getFloat("fMotionSensor", 2.7f);
     }
-
-    public void setChopServiceEnabled(Boolean isEnabled) {
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putBoolean("fChopEnabled", isEnabled);
-        editor.commit();
-    }
-
-    public String getActionPackageForTap() {
-        return  pref.getString("fTapPackage", "");
-    }
-
-    public String getActionPackageForChop() {
-        return  pref.getString("fChopPackage", "");
-    }
-
-    public Boolean getTapServiceEnabled() {
-        return  pref.getBoolean("fTapEnabled", false);
-    }
-    public Boolean getChopServiceEnabled() {
-        return  pref.getBoolean("fChopEnabled", false);
+    public float getDistanceSensibility() {
+        return  pref.getFloat("fDistanceSensor", 2.9f);
     }
 }

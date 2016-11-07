@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -182,6 +183,15 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("FliiikCommand", "startService");
             this.startService(intent);
         }
+
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showSettingActivity();
+            }
+        });
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -250,6 +260,11 @@ public class MainActivity extends AppCompatActivity {
     private void showAddGestureActivity() {
         Intent intent = new Intent(this, AddGestureActivity.class);
         startActivityForResult(intent, ADD_GESTURE_REQUEST);
+    }
+
+    private void showSettingActivity() {
+        Intent intent = new Intent(this, SettingActivity.class);
+        startActivity(intent);
     }
 
     @Override
