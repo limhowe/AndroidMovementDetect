@@ -89,7 +89,7 @@
                 android:layout_margin="16dp"
                 android:background="@color/colorAccent"
                 android:textColor="#FFFFFF"
-                android:text="That's it. I want add this guestures"/>
+                android:text="That's it. Add this combination."/>
 
         </LinearLayout>
 

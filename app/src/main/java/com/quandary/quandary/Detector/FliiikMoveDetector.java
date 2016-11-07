@@ -9,7 +9,6 @@ import android.hardware.SensorManager;
 import com.quandary.quandary.FliiikConstant;
 import com.quandary.quandary.db.FliiikGesture;
 import com.quandary.quandary.db.GesturesDatabaseHelper;
-import com.quandary.quandary.detector.move.FliiikMove;
 import com.quandary.quandary.filter.LowPassFilterSmoothing;
 import com.quandary.quandary.ui.FliiikHelper;
 
