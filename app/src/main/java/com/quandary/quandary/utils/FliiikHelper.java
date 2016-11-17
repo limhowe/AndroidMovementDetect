@@ -1,8 +1,11 @@
-package com.quandary.quandary.ui;
+package com.quandary.quandary.utils;
 
 import com.quandary.quandary.FliiikConstant;
 
+import java.util.ArrayList;
+
 import static com.quandary.quandary.FliiikConstant.GESTURE_CHOP;
+import static com.quandary.quandary.FliiikConstant.GESTURE_ROLL;
 import static com.quandary.quandary.FliiikConstant.GESTURE_TAP;
 import static com.quandary.quandary.FliiikConstant.X_POSITIVE;
 import static com.quandary.quandary.FliiikConstant.X_NEGATIVE;
@@ -21,6 +24,7 @@ public class FliiikHelper {
     public static String decodeActionString(String encodedString) {
         String decodedString = encodedString.replace(String.valueOf(FliiikConstant.GESTURE_TAP), "TAP ");
         decodedString = decodedString.replace(String.valueOf(GESTURE_CHOP), "CHOP ");
+        decodedString = decodedString.replace(String.valueOf(GESTURE_ROLL), "ROLL ");
 
         decodedString = decodedString.trim();
 
@@ -35,12 +39,33 @@ public class FliiikHelper {
         return getAxisString(action1) + getAxisString(action2) + getAxisString(action3);
     }
 
+    public static String getAxisValueAsString(int axisValue) {
+        switch (axisValue) {
+            case X_POSITIVE:
+                return "X";
+            case X_NEGATIVE:
+                return "-X";
+            case Y_POSITIVE:
+                return "Y";
+            case Y_NEGATIVE:
+                return "-Y";
+            case Z_POSITIVE:
+                return "Z";
+            case Z_NEGATIVE:
+                return "-Z";
+            default:
+                return "N/A";
+        }
+    }
+
     public static String getAxisString(int gesture) {
         switch (gesture) {
             case GESTURE_CHOP:
-                return X_POSITIVE + Z_NEGATIVE + X_NEGATIVE + Z_POSITIVE;
+                return "" + X_POSITIVE + Z_NEGATIVE + X_NEGATIVE + Z_POSITIVE;
             case GESTURE_TAP:
-                return Z_NEGATIVE + Y_POSITIVE + Z_POSITIVE + Y_NEGATIVE;
+                return "" + Z_NEGATIVE + Y_POSITIVE + Z_POSITIVE + Y_NEGATIVE;
+            case GESTURE_ROLL:
+                return "" + Z_NEGATIVE + X_POSITIVE + X_NEGATIVE + Z_POSITIVE;
         }
 
         return "None";

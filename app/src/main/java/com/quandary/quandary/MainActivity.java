@@ -7,7 +7,6 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.net.Uri;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -37,7 +36,7 @@ import com.orhanobut.dialogplus.OnItemClickListener;
 import com.quandary.quandary.db.FliiikGesture;
 import com.quandary.quandary.db.GesturesDatabaseHelper;
 import com.quandary.quandary.service.FliiikService;
-import com.quandary.quandary.ui.FliiikHelper;
+import com.quandary.quandary.utils.FliiikHelper;
 import com.quandary.quandary.ui.PackageAdapter;
 import com.quandary.quandary.ui.PackageItem;
 

@@ -15,6 +15,7 @@ import com.roughike.swipeselector.SwipeSelector;
 import java.util.List;
 
 import static com.quandary.quandary.FliiikConstant.GESTURE_CHOP;
+import static com.quandary.quandary.FliiikConstant.GESTURE_ROLL;
 import static com.quandary.quandary.FliiikConstant.GESTURE_TAP;
 
 public class AddGestureActivity extends AppCompatActivity {
@@ -31,19 +32,22 @@ public class AddGestureActivity extends AppCompatActivity {
         final SwipeSelector action1Selector = (SwipeSelector) findViewById(R.id.sizeSelector);
         action1Selector.setItems(
                 new SwipeItem(GESTURE_TAP, "TAP", "Hold the device comfortably with one or two hands and 'tap' the top width of the device against an imaginary surface."),
-                new SwipeItem(GESTURE_CHOP, "CHOP", "Hold the device comfortably with one or two hands and pretend to use the edge of the side of the device to cut or chop a stick, vegetable/ or chicken neck.")
+                new SwipeItem(GESTURE_CHOP, "CHOP", "Hold the device comfortably with one or two hands and pretend to use the edge of the side of the device to cut or chop a stick, vegetable/ or chicken neck."),
+                new SwipeItem(GESTURE_ROLL, "ROLL", "Hold the device comfortably with one or two hands and rotate 90 degrees +/-around the X axis")
         );
 
         final SwipeSelector action2Selector = (SwipeSelector) findViewById(R.id.toppingSelector);
         action2Selector.setItems(
                 new SwipeItem(GESTURE_TAP, "TAP", "Hold the device comfortably with one or two hands and 'tap' the top width of the device against an imaginary surface."),
-                new SwipeItem(GESTURE_CHOP, "CHOP", "Hold the device comfortably with one or two hands and pretend to use the edge of the side of the device to cut or chop a stick, vegetable/ or chicken neck.")
+                new SwipeItem(GESTURE_CHOP, "CHOP", "Hold the device comfortably with one or two hands and pretend to use the edge of the side of the device to cut or chop a stick, vegetable/ or chicken neck."),
+                new SwipeItem(GESTURE_ROLL, "ROLL", "Hold the device comfortably with one or two hands and rotate 90 degrees +/-around the X axis")
         );
 
         final SwipeSelector action3Selector = (SwipeSelector) findViewById(R.id.deliverySelector);
         action3Selector.setItems(
                 new SwipeItem(GESTURE_TAP, "TAP", "Hold the device comfortably with one or two hands and 'tap' the top width of the device against an imaginary surface."),
-                new SwipeItem(GESTURE_CHOP, "CHOP", "Hold the device comfortably with one or two hands and pretend to use the edge of the side of the device to cut or chop a stick, vegetable/ or chicken neck.")
+                new SwipeItem(GESTURE_CHOP, "CHOP", "Hold the device comfortably with one or two hands and pretend to use the edge of the side of the device to cut or chop a stick, vegetable/ or chicken neck."),
+                new SwipeItem(GESTURE_ROLL, "ROLL", "Hold the device comfortably with one or two hands and rotate 90 degrees +/-around the X axis")
         );
 
         findViewById(R.id.sendButton).setOnClickListener(new View.OnClickListener() {

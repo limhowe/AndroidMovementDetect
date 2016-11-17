@@ -1,7 +1,5 @@
 package com.quandary.quandary.db;
 
-import com.quandary.quandary.ui.FliiikHelper;
-
 /**
  * Created by lim on 11/3/16.
  */

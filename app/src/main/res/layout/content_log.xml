@@ -13,31 +13,137 @@
     tools:context="com.quandary.quandary.LogActivity"
     tools:showIn="@layout/activity_log">
 
-    <EditText
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:textColor="@color/gray"
-        android:inputType="numberDecimal"
-        android:text="1.3"
-        android:id="@+id/editSensibility"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"/>
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Change"
-        android:layout_below="@+id/editSensibility"
-        android:id="@+id/btnConfig"/>
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:textColor="@color/gray"
+            android:inputType="numberDecimal"
+            android:text="2.0"
+            android:id="@+id/editSensibility" />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:textColor="@color/gray"
+            android:inputType="numberDecimal"
+            android:text="2.9"
+            android:id="@+id/editLength" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Change"
+            android:id="@+id/btnConfig"/>
 
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:text=""
-        android:layout_below="@+id/btnConfig"
-        android:id="@+id/textLog"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="30dp"
+                android:layout_height="match_parent"
+                android:text="X"
+                />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text=""
+                android:id="@+id/textXLog"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="30dp"
+                android:layout_height="match_parent"
+                android:text="Y"
+                />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text=""
+                android:id="@+id/textYLog"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="30dp"
+                android:layout_height="match_parent"
+                android:text="Z"
+                />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text=""
+                android:id="@+id/textZLog"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="30dp"
+                android:layout_height="match_parent"
+                android:text="All"
+                />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text=""
+                android:id="@+id/textAllLog"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            >
+
+            <TextView
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text=""
+                />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text=""
+                android:id="@+id/textResult"/>
+
+        </LinearLayout>
 
 
+    </LinearLayout>
 
 </RelativeLayout>

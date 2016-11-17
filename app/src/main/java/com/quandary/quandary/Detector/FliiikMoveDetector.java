@@ -5,12 +5,15 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.widget.Switch;
 
 import com.quandary.quandary.FliiikConstant;
 import com.quandary.quandary.db.FliiikGesture;
 import com.quandary.quandary.db.GesturesDatabaseHelper;
 import com.quandary.quandary.filter.LowPassFilterSmoothing;
-import com.quandary.quandary.ui.FliiikHelper;
+import com.quandary.quandary.filter.MeanFilterSmoothing;
+import com.quandary.quandary.filter.MedianFilterSmoothing;
+import com.quandary.quandary.utils.FliiikHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +21,12 @@ import java.util.List;
 public class FliiikMoveDetector implements SensorEventListener {
 
     private static final long DEFAULT_BUFFER_LENGTH = (long)(3.5f * (long)Math.pow(10,9));
-    private ArrayList<SensorBundle> mSensorBundles;
+
+    private ArrayList<SensorFilterBundle> mXFilterBundles;
+    private ArrayList<SensorFilterBundle> mYFilterBundles;
+    private ArrayList<SensorFilterBundle> mAllFilterBundles;
+
+    private ArrayList<SensorFilterBundle> mZFilterBundles;
 
     private static final float DEFAULT_DISTANCE_THRESHOLD = 2.9f;
     private static final float DEFAULT_THRESHOLD_ACCELERATION = 2.7f;
@@ -35,11 +43,24 @@ public class FliiikMoveDetector implements SensorEventListener {
     private SensorBundle mLastSensorBundle;
 
     LowPassFilterSmoothing mLpSmoother;
+    MeanFilterSmoothing mMfSmoother;
+    MedianFilterSmoothing mMediaSmoother;
     protected volatile float[] acceleration = new float[3];
 
     private Context mContext;
 
     List<FliiikGesture> mSupportedMoves;
+
+    double mXDistance = 0;
+    double mYDistance = 0;
+    double mZDistance = 0;
+
+    int mXDirection =0;
+    int mYDirection =0;
+    int mZDirection =0;
+
+
+
 
     /**
      * Interface definition for a callback to be invoked when the device has performed one of fliiikmove.
@@ -58,11 +79,20 @@ public class FliiikMoveDetector implements SensorEventListener {
 
         mContext = context;
         mFliiikMoveListener = listener;
-        mSensorBundles = new ArrayList<SensorBundle>();
+
+        mXFilterBundles = new ArrayList<SensorFilterBundle>();
+        mYFilterBundles = new ArrayList<SensorFilterBundle>();
+        mZFilterBundles = new ArrayList<SensorFilterBundle>();
+
+        mAllFilterBundles = new ArrayList<SensorFilterBundle>();
+
         mLock = new Object();
         mThresholdAcceleration = DEFAULT_THRESHOLD_ACCELERATION;
         mThresholdDistanceThreshold = DEFAULT_DISTANCE_THRESHOLD;
         mLpSmoother = new LowPassFilterSmoothing();
+        mMfSmoother = new MeanFilterSmoothing();
+        mMediaSmoother = new MedianFilterSmoothing();
+
         mLastSensorBundle = null;
         mSupportedMoves = GesturesDatabaseHelper.getInstance(mContext).getAllEnabledGestures();
     }
@@ -92,6 +122,7 @@ public class FliiikMoveDetector implements SensorEventListener {
     public static boolean start() {
         if (mSensorManager != null && mSensorEventListener != null) {
             mSensorEventListener.resetSupportedMoves();
+            mSensorEventListener.resetVariables();
             return mSensorManager.registerListener(mSensorEventListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_GAME);
         }
         return false;
@@ -128,6 +159,9 @@ public class FliiikMoveDetector implements SensorEventListener {
 
         System.arraycopy(sensorEvent.values, 0, acceleration, 0, sensorEvent.values.length);
         acceleration = mLpSmoother.addSamples(acceleration);
+//        acceleration = mMfSmoother.addSamples(acceleration);
+//        acceleration = mMediaSmoother.addSamples(acceleration);
+
 
         SensorBundle sensorBundle = new SensorBundle(acceleration[0], acceleration[1], acceleration[2], sensorEvent.timestamp);
 
@@ -135,31 +169,35 @@ public class FliiikMoveDetector implements SensorEventListener {
 
         synchronized (mLock) {
             if (mLastSensorBundle == null) {
-                mSensorBundles.clear();
-                mSensorBundles.add(sensorBundle);
+                mXFilterBundles.clear();
+                mYFilterBundles.clear();
+                mZFilterBundles.clear();
                 mLastSensorBundle = sensorBundle;
             } else if (sensorBundle.getTimestamp() - mLastSensorBundle.getTimestamp() > INTERVAL) {
+                checked = makeBuffer(sensorBundle, mLastSensorBundle);
+                mLastSensorBundle = sensorBundle;
+                reduceBuffer(sensorBundle.getTimestamp());
 
-                double xForce = (sensorBundle.getXAcc() - mLastSensorBundle.getXAcc());
-                double yForce = (sensorBundle.getYAcc() - mLastSensorBundle.getYAcc());
-                double zForce = (sensorBundle.getZAcc() - mLastSensorBundle.getZAcc());
-
-                double changeLength = xForce * xForce +
-                        yForce * yForce +
-                        zForce * zForce;
-                double gForce = Math.sqrt(changeLength);
-                if (gForce > mThresholdAcceleration) {
-                    reduceBuffer(sensorBundle.getTimestamp());
-                    mSensorBundles.add(sensorBundle);
-                    mLastSensorBundle = sensorBundle;
-                    checked = true;
-                }
+//                double xForce = (sensorBundle.getXAcc() - mLastSensorBundle.getXAcc());
+//                double yForce = (sensorBundle.getYAcc() - mLastSensorBundle.getYAcc());
+//                double zForce = (sensorBundle.getZAcc() - mLastSensorBundle.getZAcc());
+//
+//                double changeLength = xForce * xForce +
+//                        yForce * yForce +
+//                        zForce * zForce;
+//                double gForce = Math.sqrt(changeLength);
+//                if (gForce > mThresholdAcceleration) {
+//                    reduceBuffer(sensorBundle.getTimestamp());
+//                    mSensorBundles.add(sensorBundle);
+//                    mLastSensorBundle = sensorBundle;
+//                    checked = true;
+//                }
             }
         }
 
-        if (checked) {
-            performCheck();
-        }
+//        if (checked) {
+//            performCheck();
+//        }
     }
 
     @Override
@@ -172,111 +210,145 @@ public class FliiikMoveDetector implements SensorEventListener {
         mThresholdDistanceThreshold = distanceSensibility;
 
         synchronized (mLock) {
-            mLastSensorBundle = null;
-            mSensorBundles.clear();
+            resetVariables();
         }
     }
 
+    private void resetVariables() {
+
+        mLastSensorBundle = null;
+        mAllFilterBundles.clear();
+        mXFilterBundles.clear();
+        mYFilterBundles.clear();
+        mZFilterBundles.clear();
+
+        mXDistance = 0;
+        mYDistance = 0;
+        mZDistance = 0;
+
+        mXDirection =0;
+        mYDirection =0;
+        mZDirection =0;
+
+        mLpSmoother.reset();
+        mMediaSmoother.reset();
+        mMfSmoother.reset();
+    }
+
     private void reduceBuffer(long currentTimeStamp) {
-        while (true) {
-            if (mSensorBundles.size() == 0) return;
-            SensorBundle sensorBundle = mSensorBundles.get(0);
-            if (currentTimeStamp - sensorBundle.getTimestamp() > DEFAULT_BUFFER_LENGTH) {
-                mSensorBundles.remove(0);
-            } else {
-                return;
+
+        for (int axis=0; axis< 4; axis++) {
+            ArrayList<SensorFilterBundle> sensorBundleList = null;
+
+            switch(axis) {
+                case 0:
+                    sensorBundleList = mAllFilterBundles;
+                    break;
+                case 1:
+                    sensorBundleList = mXFilterBundles;
+                    break;
+                case 2:
+                    sensorBundleList = mYFilterBundles;
+                    break;
+                case 3:
+                    sensorBundleList = mZFilterBundles;
+                    break;
+                default:
+                    return;
+            }
+
+            while (true) {
+                if (sensorBundleList.size() == 0) break;
+                SensorFilterBundle sensorBundle = sensorBundleList.get(0);
+                if (currentTimeStamp - sensorBundle.getTimestamp() > DEFAULT_BUFFER_LENGTH) {
+                    sensorBundleList.remove(0);
+                } else {
+                    break;
+                }
             }
         }
+    }
+
+    private boolean makeBuffer(SensorBundle currentBundle, SensorBundle baseBundle) {
+
+        int xDirection = (currentBundle.getXAcc() - baseBundle.getXAcc()) > 0 ? 1 : -1;
+        int yDirection = (currentBundle.getYAcc() - baseBundle.getYAcc()) > 0 ? 1 : -1;
+        int zDirection = (currentBundle.getZAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
+
+        boolean addedResult = false;
+
+        if (mXDirection != xDirection) {
+            if (Math.abs(mXDistance) > mThresholdDistanceThreshold) {
+                if (xDirection < 0) {
+                    mXFilterBundles.add(new SensorFilterBundle(FliiikConstant.X_POSITIVE, mLastSensorBundle.getTimestamp()));
+                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.X_POSITIVE, mLastSensorBundle.getTimestamp()));
+                } else {
+                    mXFilterBundles.add(new SensorFilterBundle(FliiikConstant.X_NEGATIVE, mLastSensorBundle.getTimestamp()));
+                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.X_NEGATIVE, mLastSensorBundle.getTimestamp()));
+                }
+
+                addedResult = true;
+                mXDistance = 0;
+            }
+            mXDirection = xDirection;
+        }
+
+        if (mYDirection != yDirection) {
+            if (Math.abs(mYDistance) > mThresholdDistanceThreshold) {
+                if (yDirection < 0) {
+                    mYFilterBundles.add(new SensorFilterBundle(FliiikConstant.Y_POSITIVE, mLastSensorBundle.getTimestamp()));
+                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.Y_POSITIVE, mLastSensorBundle.getTimestamp()));
+                } else {
+                    mYFilterBundles.add(new SensorFilterBundle(FliiikConstant.Y_NEGATIVE, mLastSensorBundle.getTimestamp()));
+                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.Y_NEGATIVE, mLastSensorBundle.getTimestamp()));
+                }
+
+                addedResult = true;
+                mYDistance = 0;
+            }
+            mYDirection = yDirection;
+        }
+
+        if (mZDirection != zDirection) {
+            if (Math.abs(mZDistance) > mThresholdDistanceThreshold) {
+                if (zDirection < 0) {
+                    mZFilterBundles.add(new SensorFilterBundle(FliiikConstant.Z_POSITIVE, mLastSensorBundle.getTimestamp()));
+                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.Z_POSITIVE, mLastSensorBundle.getTimestamp()));
+                } else {
+                    mZFilterBundles.add(new SensorFilterBundle(FliiikConstant.Z_NEGATIVE, mLastSensorBundle.getTimestamp()));
+                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.Z_NEGATIVE, mLastSensorBundle.getTimestamp()));
+                }
+
+                addedResult = true;
+                mZDistance = 0;
+            }
+            mZDirection = zDirection;
+        }
+
+
+        mXDistance += currentBundle.getXAcc() - baseBundle.getXAcc();
+        mYDistance += currentBundle.getYAcc() - baseBundle.getYAcc();
+        mZDistance += currentBundle.getZAcc() - baseBundle.getZAcc();
+
+        return addedResult;
     }
 
     private void performCheck() {
         synchronized (mLock) {
 
-            if (mSupportedMoves == null || mSupportedMoves.size() == 0 || mSensorBundles.size() < 11) {
+            if (mSupportedMoves == null || mSupportedMoves.size() == 0 || mXFilterBundles.size() < 2 || mYFilterBundles.size() < 2 || mZFilterBundles.size() < 2) {
                 return;
             }
 
-            SensorBundle baseBundle = mSensorBundles.get(0);
-            SensorBundle currentBundle = mSensorBundles.get(1);
-
-            int xDirection = (currentBundle.getXAcc() - baseBundle.getXAcc()) > 0 ? 1 : -1;
-            int yDirection = (currentBundle.getYAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
-            int zDirection = (currentBundle.getZAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
-
-            double xDistance = currentBundle.getXAcc() - baseBundle.getXAcc();
-            double yDistance = currentBundle.getYAcc() - baseBundle.getYAcc();
-            double zDistance = currentBundle.getZAcc() - baseBundle.getZAcc();
-
-            baseBundle = currentBundle;
-
-            String sBody = "";
-
-            for (int i=2; i<mSensorBundles.size(); i++) {
-                currentBundle = mSensorBundles.get(i);
-
-                int curXDirection = (currentBundle.getXAcc() - baseBundle.getXAcc()) > 0 ? 1 : -1;
-                int curYDirection = (currentBundle.getYAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
-                int curZDirection = (currentBundle.getZAcc() - baseBundle.getZAcc()) > 0 ? 1 : -1;
-
-                if (curXDirection != xDirection) {
-                    if (Math.abs(xDistance) > mThresholdDistanceThreshold) {
-                        if (xDirection < 0) {
-                            sBody = sBody + FliiikConstant.X_NEGATIVE;
-                        } else {
-                            sBody = sBody + FliiikConstant.X_POSITIVE;
-                        }
-                    }
-                    xDistance = 0;
-                }
-
-                if (curYDirection != yDirection) {
-                    if (Math.abs(yDistance) > mThresholdDistanceThreshold) {
-                        if (yDirection < 0) {
-                            sBody = sBody + FliiikConstant.Y_NEGATIVE;
-                        } else {
-                            sBody = sBody + FliiikConstant.Y_POSITIVE;
-                        }
-                    }
-
-                    yDistance = 0;
-                }
-
-                if (curZDirection != zDirection) {
-                    if (Math.abs(zDistance) > mThresholdDistanceThreshold) {
-                        if (zDirection < 0) {
-                            sBody = sBody + FliiikConstant.Z_NEGATIVE;
-                        } else {
-                            sBody = sBody + FliiikConstant.Z_POSITIVE;
-                        }
-                    }
-
-                    zDistance = 0;
-                }
-
-                xDistance += currentBundle.getXAcc() - baseBundle.getXAcc();
-                yDistance += currentBundle.getYAcc() - baseBundle.getYAcc();
-                zDistance += currentBundle.getZAcc() - baseBundle.getZAcc();
-
-                xDirection = curXDirection;
-                yDirection = curYDirection;
-                zDirection = curZDirection;
-
-                baseBundle = currentBundle;
-            }
-
-            if (sBody == "") {
-                return;
-            }
-
-            for (FliiikGesture gesture : mSupportedMoves) {
-                if (FliiikHelper.compareActionString(sBody, gesture.action)) {
-                    mFliiikMoveListener.OnFliiikMove(gesture);
-
-                    mSensorBundles.clear();
-
-                    return;
-                }
-            }
+//            for (FliiikGesture gesture : mSupportedMoves) {
+//                if (FliiikHelper.compareActionString(sBody, gesture.action)) {
+//                    mFliiikMoveListener.OnFliiikMove(gesture);
+//
+//                        resetVariables();
+//
+//                    return;
+//                }
+//            }
         }
     }
 
@@ -286,7 +358,19 @@ public class FliiikMoveDetector implements SensorEventListener {
         }
     }
 
-    public List<SensorBundle> getBundleHistory() {
-        return mSensorBundles;
+    public ArrayList<SensorFilterBundle> getBundleHistoryXAxis() {
+        return mXFilterBundles;
+    }
+
+    public ArrayList<SensorFilterBundle> getBundleHistoryYAxis() {
+        return mYFilterBundles;
+    }
+
+    public ArrayList<SensorFilterBundle> getBundleHistoryZAxis() {
+        return mZFilterBundles;
+    }
+
+    public ArrayList<SensorFilterBundle> getAllBundleHistory() {
+        return mAllFilterBundles;
     }
 }
