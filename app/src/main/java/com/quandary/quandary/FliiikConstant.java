@@ -8,6 +8,7 @@ public class FliiikConstant {
     public static final int GESTURE_TAP = 0;
     public static final int GESTURE_CHOP = 1;
     public static final int GESTURE_ROLL = 2;
+    public static final int GESTURE_SPIN = 3;
 
 
     public static final int X_POSITIVE = 1;

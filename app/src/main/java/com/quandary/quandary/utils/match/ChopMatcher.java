@@ -29,10 +29,12 @@ public class ChopMatcher {
     private static String REVERSE_PATTERN3 = new StringBuilder(PATTERN3).reverse().toString();
     private static String REVERSE_PATTERN4 = new StringBuilder(PATTERN4).reverse().toString();
 
-    public static int granualMatch(int startPosition, int startTimestamp, ArrayList<SensorFilterBundle> allList, int matchSequence) {
+    public static int granualMatch(int startPosition, int startTimestamp, ArrayList<SensorFilterBundle> allList, int matchSequence, FliiikRef ref) {
 
         int endPositionLimit = matchSequence * 4;
         if (endPositionLimit + 4 > startPosition) return -1; // No need to check;
+
+        int noizeCount = 0;
 
         for (int i=startPosition; i>=endPositionLimit; i-- ) {
             int count = 0;
@@ -40,17 +42,32 @@ public class ChopMatcher {
             int currIndex = i;
             while (count < 4 && currIndex >= endPositionLimit ) {
                 SensorFilterBundle bundle = allList.get(currIndex);
-                int currAction = bundle.getAcc();
+                int currAction = bundle.getAxis();
 
                 if (currAction != FliiikConstant.Z_NEGATIVE && currAction != FliiikConstant.Z_POSITIVE) {
                     matchStr = matchStr + currAction;
                     count ++;
+
+                    if (currAction == FliiikConstant.Y_POSITIVE || currAction == FliiikConstant.X_POSITIVE ) {
+                        ref.matchResult+=bundle.mZAcc;
+                        noizeCount++;
+                    }
                 }
                 currIndex--;
             }
 
             if (count >= 4 && (matchStr.equalsIgnoreCase(PATTERN1) || matchStr.equalsIgnoreCase(PATTERN2) || matchStr.equalsIgnoreCase(PATTERN3) || matchStr.equalsIgnoreCase(PATTERN4) ||
                     matchStr.equalsIgnoreCase(REVERSE_PATTERN1) || matchStr.equalsIgnoreCase(REVERSE_PATTERN2) || matchStr.equalsIgnoreCase(REVERSE_PATTERN3) || matchStr.equalsIgnoreCase(REVERSE_PATTERN4) )) {
+
+                if (noizeCount == 0) {
+                    ref.matchResult = ref.testAgainst;
+                } else {
+                    ref.matchResult = ref.matchResult / noizeCount;
+                }
+
+                if (ref.isNoise()) {
+                    return -1;
+                }
                 return currIndex + 1;
             }
         }

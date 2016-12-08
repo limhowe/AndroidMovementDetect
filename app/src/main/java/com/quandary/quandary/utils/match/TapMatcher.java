@@ -40,7 +40,7 @@ public class TapMatcher {
             int currIndex = i;
             while (count < 4 && currIndex >= endPositionLimit ) {
                 SensorFilterBundle bundle = allList.get(currIndex);
-                int currAction = bundle.getAcc();
+                int currAction = bundle.getAxis();
 
                 if (currAction != FliiikConstant.X_NEGATIVE && currAction != FliiikConstant.X_POSITIVE) {
                     matchStr = matchStr + currAction;

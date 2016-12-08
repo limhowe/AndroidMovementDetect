@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import static com.quandary.quandary.FliiikConstant.GESTURE_CHOP;
 import static com.quandary.quandary.FliiikConstant.GESTURE_ROLL;
+import static com.quandary.quandary.FliiikConstant.GESTURE_SPIN;
 import static com.quandary.quandary.FliiikConstant.GESTURE_TAP;
 import static com.quandary.quandary.FliiikConstant.X_POSITIVE;
 import static com.quandary.quandary.FliiikConstant.X_NEGATIVE;
@@ -25,6 +26,7 @@ public class FliiikHelper {
         String decodedString = encodedString.replace(String.valueOf(FliiikConstant.GESTURE_TAP), "TAP ");
         decodedString = decodedString.replace(String.valueOf(GESTURE_CHOP), "CHOP ");
         decodedString = decodedString.replace(String.valueOf(GESTURE_ROLL), "ROLL ");
+        decodedString = decodedString.replace(String.valueOf(GESTURE_SPIN), "SPIN ");
 
         decodedString = decodedString.trim();
 

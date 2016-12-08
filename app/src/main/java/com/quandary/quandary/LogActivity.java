@@ -8,17 +8,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.quandary.quandary.db.FliiikGesture;
 import com.quandary.quandary.detector.FliiikMoveDetector;
-import com.quandary.quandary.detector.SensorBundle;
 import com.quandary.quandary.detector.SensorFilterBundle;
 import com.quandary.quandary.utils.FliiikHelper;
 import com.quandary.quandary.utils.match.FliiikMatcher;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class LogActivity extends AppCompatActivity implements  FliiikMoveDetector.OnFliiikMoveListener{
 
@@ -86,32 +83,11 @@ public class LogActivity extends AppCompatActivity implements  FliiikMoveDetecto
     private void exportDB() {
 
         FliiikMoveDetector.stop();
-        ArrayList<SensorFilterBundle> xList = FliiikMoveDetector.getInstance().getBundleHistoryXAxis();
-        ArrayList<SensorFilterBundle> yList = FliiikMoveDetector.getInstance().getBundleHistoryYAxis();
-        ArrayList<SensorFilterBundle> zList = FliiikMoveDetector.getInstance().getBundleHistoryZAxis();
         ArrayList<SensorFilterBundle> allList = FliiikMoveDetector.getInstance().getAllBundleHistory();
-
-        String xBody = "";
-        for (SensorFilterBundle filterBundle : xList) {
-            xBody = xBody + FliiikHelper.getAxisValueAsString(filterBundle.getAcc()) + " ";
-        }
-        mXLog.setText(xBody);
-
-        String yBody = "";
-        for (SensorFilterBundle filterBundle : yList) {
-            yBody = yBody + FliiikHelper.getAxisValueAsString(filterBundle.getAcc()) + " ";
-        }
-        mYLog.setText(yBody);
-
-        String zBody = "";
-        for (SensorFilterBundle filterBundle : zList) {
-            zBody = zBody + FliiikHelper.getAxisValueAsString(filterBundle.getAcc()) + " ";
-        }
-        mZLog.setText(zBody);
 
         String allBody = "";
         for (SensorFilterBundle filterBundle : allList) {
-            allBody = allBody + FliiikHelper.getAxisValueAsString(filterBundle.getAcc()) + " ";
+            allBody = allBody + FliiikHelper.getAxisValueAsString(filterBundle.getAxis()) + " ";
         }
         mAllLog.setText(allBody);
 
@@ -163,7 +139,7 @@ public class LogActivity extends AppCompatActivity implements  FliiikMoveDetecto
 //
 //        String allBody = "";
 //        for (SensorFilterBundle filterBundle : testList) {
-//            allBody = allBody + FliiikHelper.getAxisValueAsString(filterBundle.getAcc()) + " ";
+//            allBody = allBody + FliiikHelper.getAxisValueAsString(filterBundle.getAxis()) + " ";
 //        }
 //        mAllLog.setText(allBody);
 //

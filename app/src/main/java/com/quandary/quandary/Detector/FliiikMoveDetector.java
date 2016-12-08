@@ -23,11 +23,7 @@ public class FliiikMoveDetector implements SensorEventListener {
 
     private static final long DEFAULT_BUFFER_LENGTH = (long)(3.5f * (long)Math.pow(10,9));
 
-    private ArrayList<SensorFilterBundle> mXFilterBundles;
-    private ArrayList<SensorFilterBundle> mYFilterBundles;
     private ArrayList<SensorFilterBundle> mAllFilterBundles;
-
-    private ArrayList<SensorFilterBundle> mZFilterBundles;
 
     private static final float DEFAULT_DISTANCE_THRESHOLD = 2.9f;
     private static final float DEFAULT_THRESHOLD_ACCELERATION = 2.7f;
@@ -80,10 +76,6 @@ public class FliiikMoveDetector implements SensorEventListener {
 
         mContext = context;
         mFliiikMoveListener = listener;
-
-        mXFilterBundles = new ArrayList<SensorFilterBundle>();
-        mYFilterBundles = new ArrayList<SensorFilterBundle>();
-        mZFilterBundles = new ArrayList<SensorFilterBundle>();
 
         mAllFilterBundles = new ArrayList<SensorFilterBundle>();
 
@@ -170,9 +162,7 @@ public class FliiikMoveDetector implements SensorEventListener {
 
         synchronized (mLock) {
             if (mLastSensorBundle == null) {
-                mXFilterBundles.clear();
-                mYFilterBundles.clear();
-                mZFilterBundles.clear();
+                mAllFilterBundles.clear();
                 mLastSensorBundle = sensorBundle;
             } else if (sensorBundle.getTimestamp() - mLastSensorBundle.getTimestamp() > INTERVAL) {
                 checked = makeBuffer(sensorBundle, mLastSensorBundle);
@@ -204,9 +194,6 @@ public class FliiikMoveDetector implements SensorEventListener {
 
         mLastSensorBundle = null;
         mAllFilterBundles.clear();
-        mXFilterBundles.clear();
-        mYFilterBundles.clear();
-        mZFilterBundles.clear();
 
         mXDistance = 0;
         mYDistance = 0;
@@ -222,35 +209,13 @@ public class FliiikMoveDetector implements SensorEventListener {
     }
 
     private void reduceBuffer(long currentTimeStamp) {
-
-        for (int axis=0; axis< 4; axis++) {
-            ArrayList<SensorFilterBundle> sensorBundleList = null;
-
-            switch(axis) {
-                case 0:
-                    sensorBundleList = mAllFilterBundles;
-                    break;
-                case 1:
-                    sensorBundleList = mXFilterBundles;
-                    break;
-                case 2:
-                    sensorBundleList = mYFilterBundles;
-                    break;
-                case 3:
-                    sensorBundleList = mZFilterBundles;
-                    break;
-                default:
-                    return;
-            }
-
-            while (true) {
-                if (sensorBundleList.size() == 0) break;
-                SensorFilterBundle sensorBundle = sensorBundleList.get(0);
-                if (currentTimeStamp - sensorBundle.getTimestamp() > DEFAULT_BUFFER_LENGTH) {
-                    sensorBundleList.remove(0);
-                } else {
-                    break;
-                }
+        while (true) {
+            if (mAllFilterBundles.size() == 0) break;
+            SensorFilterBundle sensorBundle = mAllFilterBundles.get(0);
+            if (currentTimeStamp - sensorBundle.getTimestamp() > DEFAULT_BUFFER_LENGTH) {
+                mAllFilterBundles.remove(0);
+            } else {
+                break;
             }
         }
     }
@@ -266,11 +231,9 @@ public class FliiikMoveDetector implements SensorEventListener {
         if (mXDirection != xDirection) {
             if (Math.abs(mXDistance) > mThresholdDistanceThreshold) {
                 if (xDirection < 0) {
-                    mXFilterBundles.add(new SensorFilterBundle(FliiikConstant.X_POSITIVE, mLastSensorBundle.getTimestamp()));
-                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.X_POSITIVE, mLastSensorBundle.getTimestamp()));
+                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.X_POSITIVE, mLastSensorBundle.getTimestamp(), currentBundle.getXAcc(), currentBundle.getYAcc(), currentBundle.getZAcc()));
                 } else {
-                    mXFilterBundles.add(new SensorFilterBundle(FliiikConstant.X_NEGATIVE, mLastSensorBundle.getTimestamp()));
-                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.X_NEGATIVE, mLastSensorBundle.getTimestamp()));
+                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.X_NEGATIVE, mLastSensorBundle.getTimestamp(), currentBundle.getXAcc(), currentBundle.getYAcc(), currentBundle.getZAcc()));
                 }
 
                 addedResult = true;
@@ -282,11 +245,9 @@ public class FliiikMoveDetector implements SensorEventListener {
         if (mYDirection != yDirection) {
             if (Math.abs(mYDistance) > mThresholdDistanceThreshold) {
                 if (yDirection < 0) {
-                    mYFilterBundles.add(new SensorFilterBundle(FliiikConstant.Y_POSITIVE, mLastSensorBundle.getTimestamp()));
-                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.Y_POSITIVE, mLastSensorBundle.getTimestamp()));
+                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.Y_POSITIVE, mLastSensorBundle.getTimestamp(), currentBundle.getXAcc(), currentBundle.getYAcc(), currentBundle.getZAcc()));
                 } else {
-                    mYFilterBundles.add(new SensorFilterBundle(FliiikConstant.Y_NEGATIVE, mLastSensorBundle.getTimestamp()));
-                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.Y_NEGATIVE, mLastSensorBundle.getTimestamp()));
+                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.Y_NEGATIVE, mLastSensorBundle.getTimestamp(), currentBundle.getXAcc(), currentBundle.getYAcc(), currentBundle.getZAcc()));
                 }
 
                 addedResult = true;
@@ -298,11 +259,9 @@ public class FliiikMoveDetector implements SensorEventListener {
         if (mZDirection != zDirection) {
             if (Math.abs(mZDistance) > mThresholdDistanceThreshold) {
                 if (zDirection < 0) {
-                    mZFilterBundles.add(new SensorFilterBundle(FliiikConstant.Z_POSITIVE, mLastSensorBundle.getTimestamp()));
-                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.Z_POSITIVE, mLastSensorBundle.getTimestamp()));
+                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.Z_POSITIVE, mLastSensorBundle.getTimestamp(), currentBundle.getXAcc(), currentBundle.getYAcc(), currentBundle.getZAcc()));
                 } else {
-                    mZFilterBundles.add(new SensorFilterBundle(FliiikConstant.Z_NEGATIVE, mLastSensorBundle.getTimestamp()));
-                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.Z_NEGATIVE, mLastSensorBundle.getTimestamp()));
+                    mAllFilterBundles.add(new SensorFilterBundle(FliiikConstant.Z_NEGATIVE, mLastSensorBundle.getTimestamp(), currentBundle.getXAcc(), currentBundle.getYAcc(), currentBundle.getZAcc()));
                 }
 
                 addedResult = true;
@@ -322,7 +281,7 @@ public class FliiikMoveDetector implements SensorEventListener {
     private void performCheck() {
         synchronized (mLock) {
 
-            if (mSupportedMoves == null || mSupportedMoves.size() == 0 || mXFilterBundles.size() < 2 || mYFilterBundles.size() < 2 || mZFilterBundles.size() < 2) {
+            if (mSupportedMoves == null || mSupportedMoves.size() == 0 || mAllFilterBundles.size() < 12) {
                 return;
             }
 
@@ -362,18 +321,6 @@ public class FliiikMoveDetector implements SensorEventListener {
         synchronized (mLock) {
             mSupportedMoves = GesturesDatabaseHelper.getInstance(mContext).getAllEnabledGestures();
         }
-    }
-
-    public ArrayList<SensorFilterBundle> getBundleHistoryXAxis() {
-        return mXFilterBundles;
-    }
-
-    public ArrayList<SensorFilterBundle> getBundleHistoryYAxis() {
-        return mYFilterBundles;
-    }
-
-    public ArrayList<SensorFilterBundle> getBundleHistoryZAxis() {
-        return mZFilterBundles;
     }
 
     public ArrayList<SensorFilterBundle> getAllBundleHistory() {

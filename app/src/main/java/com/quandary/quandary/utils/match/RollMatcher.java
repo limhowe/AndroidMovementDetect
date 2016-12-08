@@ -40,7 +40,7 @@ public class RollMatcher {
             int currIndex = i;
             while (count < 4 && currIndex >= endPositionLimit) {
                 SensorFilterBundle bundle = allList.get(currIndex);
-                int currAction = bundle.getAcc();
+                int currAction = bundle.getAxis();
 
                 if (currAction != FliiikConstant.Y_NEGATIVE && currAction != FliiikConstant.Y_POSITIVE) {
                     matchStr = matchStr + currAction;

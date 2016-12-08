@@ -82,11 +82,11 @@ public class GesturesDatabaseHelper extends SQLiteOpenHelper {
     // but the DATABASE_VERSION is different than the version of the database that exists on disk.
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion != newVersion) {
+//        if (oldVersion != newVersion) {
             // Simplest implementation is to drop all old tables and recreate them
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_GUESTURE);
             onCreate(db);
-        }
+//        }
     }
 
 

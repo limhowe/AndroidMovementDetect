@@ -14,15 +14,31 @@ public class SensorFilterBundle {
      * The acceleration on X axis.
      */
     private final int mAxis;
+    /**
+     * The acceleration on X axis.
+     */
+    public final float mXAcc;
+    /**
+     * The acceleration on Y axis.
+     */
+    public final float mYAcc;
+    /**
+     * The acceleration on Z axis.
+     */
+    public final float mZAcc;
+
 
     private long mTimestamp;
 
-    public SensorFilterBundle(int axis, long timestamp) {
+    public SensorFilterBundle(int axis, long timestamp, float XAcc, float YAcc, float ZAcc) {
         mAxis = axis;
+        mXAcc = XAcc;
+        mYAcc = YAcc;
+        mZAcc = ZAcc;
         mTimestamp = timestamp;
     }
 
-    public int getAcc() {
+    public int getAxis() {
         return mAxis;
     }
 

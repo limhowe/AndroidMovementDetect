@@ -6,6 +6,7 @@ import com.quandary.quandary.detector.SensorFilterBundle;
 import java.util.ArrayList;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.floor;
 
 /**
  * Created by lim on 11/17/16.
@@ -19,6 +20,8 @@ public class FliiikMatcher {
         if (actionString.length() != 3) return FLIIIK_NOT_FOUND;
 
         String compareString = actionString;
+
+        FliiikRef refObj = new FliiikRef();
 
         int startPosition = allList.size() - 1;
 
@@ -34,9 +37,18 @@ public class FliiikMatcher {
             }
 
             int currResult = -1;
+
+            refObj.testAgainst = 0;
+            refObj.matchResult = 0;
+
             switch (action) {
                 case FliiikConstant.GESTURE_CHOP:
-                    currResult = ChopMatcher.granualMatch(startPosition,0,allList,2-i);
+                    refObj.testAgainst = 0;
+                    currResult = ChopMatcher.granualMatch(startPosition,0,allList,2-i ,refObj);
+                    break;
+                case FliiikConstant.GESTURE_SPIN:
+                    refObj.testAgainst = 9.8f;
+                    currResult = ChopMatcher.granualMatch(startPosition,0,allList,2-i ,refObj);
                     break;
                 case FliiikConstant.GESTURE_TAP:
                     currResult = TapMatcher.granualMatch(startPosition,0,allList,2-i);
