@@ -14,6 +14,7 @@ import com.quandary.quandary.filter.LowPassFilterSmoothing;
 import com.quandary.quandary.filter.MeanFilterSmoothing;
 import com.quandary.quandary.filter.MedianFilterSmoothing;
 import com.quandary.quandary.utils.FliiikHelper;
+import com.quandary.quandary.utils.match.FliiikMatcher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -177,27 +178,12 @@ public class FliiikMoveDetector implements SensorEventListener {
                 checked = makeBuffer(sensorBundle, mLastSensorBundle);
                 mLastSensorBundle = sensorBundle;
                 reduceBuffer(sensorBundle.getTimestamp());
-
-//                double xForce = (sensorBundle.getXAcc() - mLastSensorBundle.getXAcc());
-//                double yForce = (sensorBundle.getYAcc() - mLastSensorBundle.getYAcc());
-//                double zForce = (sensorBundle.getZAcc() - mLastSensorBundle.getZAcc());
-//
-//                double changeLength = xForce * xForce +
-//                        yForce * yForce +
-//                        zForce * zForce;
-//                double gForce = Math.sqrt(changeLength);
-//                if (gForce > mThresholdAcceleration) {
-//                    reduceBuffer(sensorBundle.getTimestamp());
-//                    mSensorBundles.add(sensorBundle);
-//                    mLastSensorBundle = sensorBundle;
-//                    checked = true;
-//                }
             }
         }
 
-//        if (checked) {
-//            performCheck();
-//        }
+        if (checked) {
+            performCheck();
+        }
     }
 
     @Override
@@ -340,15 +326,35 @@ public class FliiikMoveDetector implements SensorEventListener {
                 return;
             }
 
-//            for (FliiikGesture gesture : mSupportedMoves) {
-//                if (FliiikHelper.compareActionString(sBody, gesture.action)) {
-//                    mFliiikMoveListener.OnFliiikMove(gesture);
-//
-//                        resetVariables();
-//
-//                    return;
-//                }
-//            }
+            FliiikGesture detectGesture = null;
+            int currDetectResult = FliiikMatcher.FLIIIK_NOT_FOUND;
+
+            for (FliiikGesture gesture : mSupportedMoves) {
+
+                int result = FliiikMatcher.match(gesture.action, mAllFilterBundles);
+                if (result == FliiikMatcher.FLIIIK_NOT_FOUND) continue;
+
+                if (result == 0)
+                {
+                    mFliiikMoveListener.OnFliiikMove(gesture);
+                    resetVariables();
+                    return;
+                }
+
+                if (currDetectResult == FliiikMatcher.FLIIIK_NOT_FOUND) {
+                    detectGesture = gesture;
+                    currDetectResult = result;
+                } else if (currDetectResult > result) {
+                    detectGesture = gesture;
+                    currDetectResult = result;
+                }
+            }
+
+            if (detectGesture != null) {
+                mFliiikMoveListener.OnFliiikMove(detectGesture);
+                resetVariables();
+                return;
+            }
         }
     }
 
