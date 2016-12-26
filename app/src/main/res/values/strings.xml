@@ -11,6 +11,7 @@
 
 
     <string name="drawer_item_home">Home</string>
+    <string name="drawer_item_edit">Gesture Creation &amp; Management</string>
     <string name="drawer_item_game">Games</string>
     <string name="drawer_item_video">Video Tutorials</string>
     <string name="drawer_item_settings">Settings</string>

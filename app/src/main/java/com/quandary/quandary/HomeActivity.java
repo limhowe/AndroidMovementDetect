@@ -41,11 +41,12 @@ public class HomeActivity extends AppCompatActivity {
                         new HeaderDrawerItem().withSelectable(false),
                         new DividerDrawerItem(),
                         new PrimaryDrawerItem().withName(R.string.drawer_item_home).withIcon(FontAwesome.Icon.faw_home).withIdentifier(2).withSelectable(true),
-                        new PrimaryDrawerItem().withName(R.string.drawer_item_game).withIcon(FontAwesome.Icon.faw_gamepad).withIdentifier(3).withSelectable(true),
-                        new PrimaryDrawerItem().withName(R.string.drawer_item_video).withIcon(GoogleMaterial.Icon.gmd_video_library).withIdentifier(4).withSelectable(true),
+                        new PrimaryDrawerItem().withName(R.string.drawer_item_edit).withIcon(GoogleMaterial.Icon.gmd_mode_edit).withIdentifier(3).withSelectable(true),
+                        new PrimaryDrawerItem().withName(R.string.drawer_item_game).withIcon(FontAwesome.Icon.faw_gamepad).withIdentifier(4).withSelectable(true),
+                        new PrimaryDrawerItem().withName(R.string.drawer_item_video).withIcon(GoogleMaterial.Icon.gmd_video_library).withIdentifier(5).withSelectable(true),
                         new DividerDrawerItem(),
-                        new PrimaryDrawerItem().withName(R.string.drawer_item_settings).withIcon(GoogleMaterial.Icon.gmd_settings).withIdentifier(5).withSelectable(true),
-                        new PrimaryDrawerItem().withName(R.string.drawer_item_help).withIcon(GoogleMaterial.Icon.gmd_help).withIdentifier(6).withSelectable(true))
+                        new PrimaryDrawerItem().withName(R.string.drawer_item_settings).withIcon(GoogleMaterial.Icon.gmd_settings).withIdentifier(6).withSelectable(true),
+                        new PrimaryDrawerItem().withName(R.string.drawer_item_help).withIcon(GoogleMaterial.Icon.gmd_help).withIdentifier(7).withSelectable(true))
                 .withSavedInstance(savedInstanceState)
                 .withShowDrawerOnFirstLaunch(true)
                 .build();
