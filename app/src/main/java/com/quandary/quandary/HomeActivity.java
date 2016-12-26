@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.Toast;
 
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
@@ -31,11 +32,14 @@ public class HomeActivity extends AppCompatActivity implements EditFragment.OnGe
     private Drawer result = null;
 
     private int mCurrentDrawerId = 2;
+    ConfigurationManager sharedConfigurationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        sharedConfigurationManager = new ConfigurationManager(getApplicationContext());
 
         // Handle Toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -142,11 +146,20 @@ public class HomeActivity extends AppCompatActivity implements EditFragment.OnGe
 
     @Override
     public void onGestureUpdated() {
-
+        Intent serviceIntent = new Intent(this,FliiikService.class);
+        serviceIntent.putExtra("FliiikCommand", "UpdateSupportMoves");
+        this.startService(serviceIntent);
     }
 
     @Override
     public void onSettingUpdated(float motion, float distance) {
+        sharedConfigurationManager.setDistanceSensibility(distance);
+        sharedConfigurationManager.setMotionSensibility(motion);
 
+        Intent serviceIntent = new Intent(this,FliiikService.class);
+        serviceIntent.putExtra("FliiikCommand", "config");
+        this.startService(serviceIntent);
+
+        Toast.makeText(getApplicationContext(),"Sensor Updated", Toast.LENGTH_LONG).show();
     }
 }
