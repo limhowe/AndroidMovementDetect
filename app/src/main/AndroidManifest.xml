@@ -39,8 +39,12 @@
             android:label="@string/title_activity_log"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".AddGestureActivity" />
-        <activity android:name=".SettingActivity" />
+        <activity android:name=".AddGestureActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/MaterialDrawerTheme.Light.DarkToolbar" />
+        <activity android:name=".SettingActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/MaterialDrawerTheme.Light.DarkToolbar" />
     </application>
 
 </manifest>

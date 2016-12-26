@@ -16,12 +16,10 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
-
-    <ImageView
+    <FrameLayout
+        android:id="@+id/mainFragment"
+        android:layout_below="@id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:src="@drawable/bg_main"
-        android:scaleType="centerCrop"
-        />
+        android:layout_height="match_parent" />
 
 </RelativeLayout>

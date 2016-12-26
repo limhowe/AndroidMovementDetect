@@ -1,6 +1,5 @@
-package com.quandary.quandary;
+package com.quandary.quandary.ui.fragments;
 
-import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -8,13 +7,12 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -30,38 +28,33 @@ import com.baoyz.swipemenulistview.SwipeMenu;
 import com.baoyz.swipemenulistview.SwipeMenuCreator;
 import com.baoyz.swipemenulistview.SwipeMenuItem;
 import com.baoyz.swipemenulistview.SwipeMenuListView;
-import com.mikepenz.fontawesome_typeface_library.FontAwesome;
-import com.mikepenz.google_material_typeface_library.GoogleMaterial;
-import com.mikepenz.itemanimators.AlphaCrossFadeAnimator;
-import com.mikepenz.materialdrawer.Drawer;
-import com.mikepenz.materialdrawer.DrawerBuilder;
-import com.mikepenz.materialdrawer.model.DividerDrawerItem;
-import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
-import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
-import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.Holder;
 import com.orhanobut.dialogplus.ListHolder;
 import com.orhanobut.dialogplus.OnClickListener;
 import com.orhanobut.dialogplus.OnItemClickListener;
+import com.quandary.quandary.AddGestureActivity;
+import com.quandary.quandary.MainActivity;
+import com.quandary.quandary.R;
 import com.quandary.quandary.db.FliiikGesture;
 import com.quandary.quandary.db.GesturesDatabaseHelper;
-import com.quandary.quandary.service.FliiikService;
-import com.quandary.quandary.ui.draweritem.HeaderDrawerItem;
-import com.quandary.quandary.ui.fragments.EditFragment;
-import com.quandary.quandary.utils.FliiikHelper;
 import com.quandary.quandary.ui.PackageAdapter;
 import com.quandary.quandary.ui.PackageItem;
+import com.quandary.quandary.utils.FliiikHelper;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+import static android.app.Activity.RESULT_OK;
+
+public class EditFragment extends Fragment {
+
+    OnGeustureConfigurationListener mListener;
 
     private List<FliiikGesture> mAppList;
-    private AppAdapter mAdapter;
+    private EditFragment.AppAdapter mAdapter;
 
     private PackageAdapter packageAdapter;
     private List<PackageItem> data;
@@ -76,65 +69,76 @@ public class MainActivity extends AppCompatActivity {
 
     private FliiikGesture mCurrentGesture;
 
-    private Drawer result = null;
+
+    public EditFragment() {
+        // Required empty public constructor
+    }
+
+    /**
+     * @return A new instance of fragment EditFragment.
+     */
+    public static EditFragment newInstance() {
+        EditFragment fragment = new EditFragment();
+        return fragment;
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        // Handle Toolbar
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        //Create the drawer
-        result = new DrawerBuilder()
-                .withActivity(this)
-                .withToolbar(toolbar)
-                .withHasStableIds(true)
-                .withItemAnimator(new AlphaCrossFadeAnimator())
-                .addDrawerItems(
-                        new HeaderDrawerItem().withSelectable(false),
-                        new DividerDrawerItem(),
-                        new PrimaryDrawerItem().withName(R.string.drawer_item_home).withIcon(FontAwesome.Icon.faw_home).withIdentifier(2).withSelectable(true),
-                        new PrimaryDrawerItem().withName(R.string.drawer_item_edit).withIcon(GoogleMaterial.Icon.gmd_mode_edit).withIdentifier(3).withSelectable(false),
-                        new PrimaryDrawerItem().withName(R.string.drawer_item_game).withIcon(FontAwesome.Icon.faw_gamepad).withIdentifier(4).withSelectable(false),
-                        new PrimaryDrawerItem().withName(R.string.drawer_item_video).withIcon(GoogleMaterial.Icon.gmd_video_library).withIdentifier(5).withSelectable(true),
-                        new DividerDrawerItem(),
-                        new PrimaryDrawerItem().withName(R.string.drawer_item_settings).withIcon(GoogleMaterial.Icon.gmd_settings).withIdentifier(6).withSelectable(true),
-                        new PrimaryDrawerItem().withName(R.string.drawer_item_help).withIcon(GoogleMaterial.Icon.gmd_help).withIdentifier(7).withSelectable(false))
-                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
-                    @Override
-                    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-
-                        if (drawerItem != null) {
-                            if (drawerItem.getIdentifier() == 2) {
-                                showHomeActivity();
-                            } else  if (drawerItem.getIdentifier() == 6){
-                                showSettingActivity();
-                            } else if (drawerItem.getIdentifier() == 5){
-                                result.setSelection(3);
-                                showVideoLibrary();
-                            }
-                        }
-                        return false;
-                    }
-                })
-                .withSavedInstance(savedInstanceState)
-                .withShowDrawerOnFirstLaunch(true)
-                .build();
-
-        result.setSelection(3);
+        mPackageManager = getActivity().getPackageManager();
+        mAdapter = new EditFragment.AppAdapter();
 
 
+        final PackageManager pm = getActivity().getPackageManager();
+
+        //Create Adapter
+        data = new ArrayList<PackageItem>();
+
+        //Get Application list
+        List<ApplicationInfo> packs = pm.getInstalledApplications(0);
+        for (ApplicationInfo content : packs) {
+            try {
+                if (pm.getLaunchIntentForPackage(content.packageName) != null) {
+                    PackageItem item = new PackageItem();
+                    item.setName(getActivity().getPackageManager().getApplicationLabel(content).toString());
+                    item.setPackageName(content.packageName);
+                    item.setIcon(getActivity().getPackageManager().getDrawable(content.packageName, content.icon, content));
+                    data.add(item);
+                }
+            } catch (Exception e) {
+                Log.e("", "Parse Application Manager: " + e.toString());
+            } catch (Error e2) {
+                Log.e("", "Parse Application Manager 2: " + e2.toString());
+            }
+        }
+
+        Collections.sort(data, new Comparator<PackageItem>() {
+            public int compare(PackageItem o1, PackageItem o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+
+        packageAdapter = new PackageAdapter(getActivity(), data);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        setHasOptionsMenu(true);
+        return inflater.inflate(R.layout.fragment_edit, container, false);
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+
+        getActivity().setTitle("Gesture Management");
 
 
+        mAppList = GesturesDatabaseHelper.getInstance(getActivity().getApplicationContext()).getAllGestures();
+        mListView = (SwipeMenuListView) view.findViewById(R.id.listView);
 
-        mPackageManager = getPackageManager();
-
-        mAppList = GesturesDatabaseHelper.getInstance(getApplicationContext()).getAllGestures();
-        mListView = (SwipeMenuListView) findViewById(R.id.listView);
-        mAdapter = new AppAdapter();
         mListView.setAdapter(mAdapter);
 
         // step 1. create a MenuCreator
@@ -144,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
             public void create(SwipeMenu menu) {
                 // create "delete" item
                 SwipeMenuItem deleteItem = new SwipeMenuItem(
-                        getApplicationContext());
+                        getActivity().getApplicationContext());
                 // set item background
                 deleteItem.setBackground(new ColorDrawable(Color.rgb(0xF9,
                         0x3F, 0x25)));
@@ -171,10 +175,10 @@ public class MainActivity extends AppCompatActivity {
                         if (mCurrentGesture != null && item.action.equalsIgnoreCase(mCurrentGesture.action)) {
                             mCurrentGesture = null;
                         }
-                        GesturesDatabaseHelper.getInstance(getApplicationContext()).deleteGesture(item);
+                        GesturesDatabaseHelper.getInstance(getActivity().getApplicationContext()).deleteGesture(item);
                         mAppList.remove(position);
                         mAdapter.notifyDataSetChanged();
-                        sendUpdateMessageToService();
+                        mListener.onGestureUpdated();
                         break;
                 }
                 return false;
@@ -198,57 +202,19 @@ public class MainActivity extends AppCompatActivity {
                 PackageItem itemSelected = (PackageItem) item;
                 if (mCurrentGesture != null) {
                     mCurrentGesture.packageName = itemSelected.getPackageName();
-                    GesturesDatabaseHelper.getInstance(getApplicationContext()).updateGesture(mCurrentGesture);
-                    sendUpdateMessageToService();
+                    GesturesDatabaseHelper.getInstance(getActivity().getApplicationContext()).updateGesture(mCurrentGesture);
+                    mListener.onGestureUpdated();
                     mAdapter.notifyDataSetChanged();
                 }
                 dialog.dismiss();
             }
         };
-
-        final PackageManager pm = getPackageManager();
-
-        //Create Adapter
-        data = new ArrayList<PackageItem>();
-
-        //Get Application list
-        List<ApplicationInfo> packs = pm.getInstalledApplications(0);
-        for (ApplicationInfo content : packs) {
-            try {
-                if (pm.getLaunchIntentForPackage(content.packageName) != null) {
-                    PackageItem item = new PackageItem();
-                    item.setName(getPackageManager().getApplicationLabel(content).toString());
-                    item.setPackageName(content.packageName);
-                    item.setIcon(getPackageManager().getDrawable(content.packageName, content.icon, content));
-                    data.add(item);
-                }
-            } catch (Exception e) {
-                Log.e("", "Parse Application Manager: " + e.toString());
-            } catch (Error e2) {
-                Log.e("", "Parse Application Manager 2: " + e2.toString());
-            }
-        }
-
-        Collections.sort(data, new Comparator<PackageItem>() {
-            public int compare(PackageItem o1, PackageItem o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
-
-        packageAdapter = new PackageAdapter(this, data);
-
-        //check if service is running and make sure service runs
-        if (!isMyServiceRunning(FliiikService.class)) {
-            Intent intent = new Intent(this, FliiikService.class);
-            intent.putExtra("FliiikCommand", "startService");
-            this.startService(intent);
-        }
     }
 
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.main_menu, menu);
-        return true;
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
 
@@ -265,9 +231,46 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onDetach() {
+        super.onDetach();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof EditFragment.OnGeustureConfigurationListener) {
+            mListener = (EditFragment.OnGeustureConfigurationListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnSettingChangeListener");
+        }
+    }
+
+
+    //NAVIGATION
+    private void showAddGestureActivity() {
+        Intent intent = new Intent(getActivity(), AddGestureActivity.class);
+        startActivityForResult(intent, ADD_GESTURE_REQUEST);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == ADD_GESTURE_REQUEST) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                mAppList = GesturesDatabaseHelper.getInstance(getActivity().getApplicationContext()).getAllGestures();
+                mAdapter.notifyDataSetChanged();
+                mListener.onGestureUpdated();
+            }
+        }
+    }
+
+
+    /************ Start **********/
 
     //Change Application
-
     private void changeApplication() {
         showCompleteDialog(new ListHolder(), Gravity.BOTTOM, packageAdapter, clickListener, itemClickListener,
                 false);
@@ -278,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
     private void showCompleteDialog(Holder holder, int gravity, BaseAdapter adapter,
                                     OnClickListener clickListener, OnItemClickListener itemClickListener,
                                     boolean expanded) {
-        final DialogPlus dialog = DialogPlus.newDialog(this)
+        final DialogPlus dialog = DialogPlus.newDialog(getActivity())
                 .setContentHolder(holder)
                 .setHeader(R.layout.dialog_header)
                 .setFooter(R.layout.dailog_footer)
@@ -293,39 +296,6 @@ public class MainActivity extends AppCompatActivity {
                 .create();
         dialog.show();
     }
-
-    // CHECK SERVICE RUNNING
-
-    private boolean isMyServiceRunning(Class<?> serviceClass) {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-    //NAVIGATION
-    private void showAddGestureActivity() {
-        Intent intent = new Intent(this, AddGestureActivity.class);
-        startActivityForResult(intent, ADD_GESTURE_REQUEST);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // Check which request we're responding to
-        if (requestCode == ADD_GESTURE_REQUEST) {
-            // Make sure the request was successful
-            if (resultCode == RESULT_OK) {
-                mAppList = GesturesDatabaseHelper.getInstance(getApplicationContext()).getAllGestures();
-                mAdapter.notifyDataSetChanged();
-                sendUpdateMessageToService();
-            }
-        }
-    }
-
 
     class AppAdapter extends BaseAdapter {
         @Override
@@ -357,11 +327,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             if (convertView == null) {
-                convertView = View.inflate(getApplicationContext(),
+                convertView = View.inflate(getActivity().getApplicationContext(),
                         R.layout.list_gesture_row, null);
-                new ViewHolder(convertView);
+                new EditFragment.AppAdapter.ViewHolder(convertView);
             }
-            ViewHolder holder = (ViewHolder) convertView.getTag();
+            EditFragment.AppAdapter.ViewHolder holder = (EditFragment.AppAdapter.ViewHolder) convertView.getTag();
 
             final FliiikGesture gesture = getItem(position);
 
@@ -398,7 +368,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("", "Parse Application Manager 2: " + e2.toString());
                 }
             } else {
-                holder.fk_icon.setImageDrawable(getDrawable(android.R.drawable.ic_menu_edit));
+                holder.fk_icon.setImageDrawable(getActivity().getDrawable(android.R.drawable.ic_menu_edit));
                 holder.fk_package.setText("Not Configured");
             }
             return convertView;
@@ -425,8 +395,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void setCurrentGestureEnable(boolean isEnable) {
         mCurrentGesture.status = isEnable;
-        GesturesDatabaseHelper.getInstance(getApplicationContext()).updateGesture(mCurrentGesture);
-        sendUpdateMessageToService();
+        GesturesDatabaseHelper.getInstance(getActivity().getApplicationContext()).updateGesture(mCurrentGesture);
+        mListener.onGestureUpdated();
     }
 
     private int dp2px(int dp) {
@@ -434,32 +404,8 @@ public class MainActivity extends AppCompatActivity {
                 getResources().getDisplayMetrics());
     }
 
-    private void sendUpdateMessageToService() {
-        Intent serviceIntent = new Intent(this,FliiikService.class);
-        serviceIntent.putExtra("FliiikCommand", "UpdateSupportMoves");
-        this.startService(serviceIntent);
+
+    public interface OnGeustureConfigurationListener {
+        void onGestureUpdated();
     }
-
-
-    // Navigation Methods
-
-    private void showSettingActivity() {
-        Intent intent = new Intent(MainActivity.this, SettingActivity.class);
-        startActivity(intent);
-    }
-
-    private void showHomeActivity() {
-        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-        startActivity(intent);
-    }
-
-    private void showVideoLibrary() {
-        String url = "http://www.youtube.com";
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse(url));
-        startActivity(intent);
-    }
-
-
-
 }
