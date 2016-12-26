@@ -24,4 +24,6 @@
     <dimen name="drawer_header_icon_height">50dp</dimen>
     <dimen name="drawer_header_icon_padding">8dp</dimen>
 
+    <dimen name="gesture_button_margin">6dp</dimen>
+
 </resources>

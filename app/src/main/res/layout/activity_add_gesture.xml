@@ -33,14 +33,11 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                tools:context="com.example.swipeselector.MainActivity">
+                android:orientation="vertical">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
                     android:layout_marginTop="16dp"
                     android:text="Gesture Sequence"
                     android:textAppearance="@style/TextAppearance.AppCompat.Title" />
@@ -48,54 +45,237 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
                     android:layout_marginBottom="16dp"
-                    android:text="Select 3 gesture that will be detected in sequence"
+                    android:text="Select three gestures in sequence from the following list"
                     android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
-                <View
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
-                    android:background="#DDDDDD" />
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
-                <com.roughike.swipeselector.SwipeSelector
-                    android:id="@+id/sizeSelector"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1"
+                        android:textStyle="bold"
+                        android:textColor="@color/material_drawer_background"
+                        android:gravity="center"
+                        android:layout_gravity="center_vertical"
+                        android:textSize="20sp"
+                        android:paddingLeft="10dp"
+                        android:paddingRight="10dp"
+                        android:layout_marginRight="10dp" />
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
-                    android:background="#DDDDDD" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:weightSum = "4">
 
-                <com.roughike.swipeselector.SwipeSelector
-                    android:id="@+id/toppingSelector"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                        <Button
+                            android:id="@+id/btnGesture10"
+                            style="?attr/buttonStyle"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/gesture_button_margin"
+                            android:background="@drawable/round_gesture_btn"
+                            android:textColor="#FFFFFF"
+                            android:text="TAP"
+                            android:tag="1010"/>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
-                    android:background="#DDDDDD" />
+                        <Button
+                            android:id="@+id/btnGesture11"
+                            style="?attr/buttonStyle"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/gesture_button_margin"
+                            android:background="@drawable/round_gesture_btn"
+                            android:textColor="#FFFFFF"
+                            android:text="CHOP"
+                            android:tag="1011"/>
 
-                <com.roughike.swipeselector.SwipeSelector
-                    android:id="@+id/deliverySelector"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                        <Button
+                            android:id="@+id/btnGesture12"
+                            style="?attr/buttonStyle"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/gesture_button_margin"
+                            android:background="@drawable/round_gesture_btn"
+                            android:textColor="#FFFFFF"
+                            android:text="ROLL"
+                            android:tag="1012"/>
 
-                <View
+                        <Button
+                            android:id="@+id/btnGesture13"
+                            style="?attr/buttonStyle"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/gesture_button_margin"
+                            android:background="@drawable/round_gesture_btn"
+                            android:textColor="#FFFFFF"
+                            android:text="SPIN"
+                            android:tag="1013"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
-                    android:background="#DDDDDD" />
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2"
+                        android:textStyle="bold"
+                        android:textColor="@color/material_drawer_background"
+                        android:gravity="center"
+                        android:layout_gravity="center_vertical"
+                        android:textSize="20sp"
+                        android:paddingLeft="10dp"
+                        android:paddingRight="10dp"
+                        android:layout_marginRight="10dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:weightSum = "4">
+
+                        <Button
+                            android:id="@+id/btnGesture20"
+                            style="?attr/buttonStyle"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/gesture_button_margin"
+                            android:background="@drawable/round_gesture_btn"
+                            android:textColor="#FFFFFF"
+                            android:text="TAP"
+                            android:tag="1020"/>
+
+                        <Button
+                            android:id="@+id/btnGesture21"
+                            style="?attr/buttonStyle"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/gesture_button_margin"
+                            android:background="@drawable/round_gesture_btn"
+                            android:textColor="#FFFFFF"
+                            android:text="CHOP"
+                            android:tag="1021"/>
+
+                        <Button
+                            android:id="@+id/btnGesture22"
+                            style="?attr/buttonStyle"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/gesture_button_margin"
+                            android:background="@drawable/round_gesture_btn"
+                            android:textColor="#FFFFFF"
+                            android:text="ROLL"
+                            android:tag="1022"/>
+
+                        <Button
+                            android:id="@+id/btnGesture23"
+                            style="?attr/buttonStyle"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/gesture_button_margin"
+                            android:background="@drawable/round_gesture_btn"
+                            android:textColor="#FFFFFF"
+                            android:text="SPIN"
+                            android:tag="1023"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3"
+                        android:textStyle="bold"
+                        android:textColor="@color/material_drawer_background"
+                        android:gravity="center"
+                        android:layout_gravity="center_vertical"
+                        android:textSize="20sp"
+                        android:paddingLeft="10dp"
+                        android:paddingRight="10dp"
+                        android:layout_marginRight="10dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:weightSum = "4">
+
+                        <Button
+                            android:id="@+id/btnGesture30"
+                            style="?attr/buttonStyle"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/gesture_button_margin"
+                            android:background="@drawable/round_gesture_btn"
+                            android:textColor="#FFFFFF"
+                            android:text="TAP"
+                            android:tag="1030"/>
+
+                        <Button
+                            android:id="@+id/btnGesture31"
+                            style="?attr/buttonStyle"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/gesture_button_margin"
+                            android:background="@drawable/round_gesture_btn"
+                            android:textColor="#FFFFFF"
+                            android:text="CHOP"
+                            android:tag="1031"/>
+
+                        <Button
+                            android:id="@+id/btnGesture32"
+                            style="?attr/buttonStyle"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/gesture_button_margin"
+                            android:background="@drawable/round_gesture_btn"
+                            android:textColor="#FFFFFF"
+                            android:text="ROLL"
+                            android:tag="1032"/>
+
+                        <Button
+                            android:id="@+id/btnGesture33"
+                            style="?attr/buttonStyle"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/gesture_button_margin"
+                            android:background="@drawable/round_gesture_btn"
+                            android:textColor="#FFFFFF"
+                            android:text="SPIN"
+                            android:tag="1033"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
 
                 <Button
                     style="?attr/buttonStyle"
@@ -103,7 +283,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="16dp"
-                    android:background="@color/colorAccent"
+                    android:background="@drawable/btn_add_gesture"
                     android:textColor="#FFFFFF"
                     android:text="That's it. Add this combination."/>
 

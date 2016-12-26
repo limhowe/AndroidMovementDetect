@@ -7,6 +7,7 @@ import android.support.v7.widget.Toolbar;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.quandary.quandary.db.FliiikGesture;
@@ -14,6 +15,8 @@ import com.quandary.quandary.db.GesturesDatabaseHelper;
 import com.roughike.swipeselector.SwipeItem;
 import com.roughike.swipeselector.SwipeSelector;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.quandary.quandary.FliiikConstant.GESTURE_CHOP;
@@ -21,14 +24,22 @@ import static com.quandary.quandary.FliiikConstant.GESTURE_ROLL;
 import static com.quandary.quandary.FliiikConstant.GESTURE_SPIN;
 import static com.quandary.quandary.FliiikConstant.GESTURE_TAP;
 
-public class AddGestureActivity extends AppCompatActivity {
+public class AddGestureActivity extends AppCompatActivity implements View.OnClickListener{
 
     List<FliiikGesture> mCurrentList;
+
+    ArrayList<Button> mButtons1;
+    ArrayList<Button> mButtons2;
+    ArrayList<Button> mButtons3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_gesture);
+
+        mButtons1 = new ArrayList<Button>();
+        mButtons2 = new ArrayList<Button>();
+        mButtons3 = new ArrayList<Button>();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -38,54 +49,46 @@ public class AddGestureActivity extends AppCompatActivity {
 
         mCurrentList = GesturesDatabaseHelper.getInstance(getApplicationContext()).getAllGestures();
 
-        final SwipeSelector action1Selector = (SwipeSelector) findViewById(R.id.sizeSelector);
-        action1Selector.setItems(
-                new SwipeItem(GESTURE_TAP, "TAP", "Hold the device comfortably with one or two hands and 'tap' the top width of the device against an imaginary surface."),
-                new SwipeItem(GESTURE_CHOP, "CHOP", "Hold the device comfortably with one or two hands and pretend to use the edge of the side of the device to cut or chop a stick, vegetable/ or chicken neck."),
-                new SwipeItem(GESTURE_ROLL, "ROLL", "Hold the device comfortably with one or two hands and rotate 90 degrees +/-around the X axis"),
-                new SwipeItem(GESTURE_SPIN, "SPIN", "Spin the device")
-        );
+        for (int i = 0; i < 4; i++) {
+                String buttonID = "btnGesture" + (10 + i);
+                int resID = getResources().getIdentifier(buttonID, "id", getPackageName());
+                Button btn = (Button) findViewById(resID);
+                btn.setOnClickListener(this);
+                mButtons1.add(btn);
+        }
 
-        final SwipeSelector action2Selector = (SwipeSelector) findViewById(R.id.toppingSelector);
-        action2Selector.setItems(
-                new SwipeItem(GESTURE_TAP, "TAP", "Hold the device comfortably with one or two hands and 'tap' the top width of the device against an imaginary surface."),
-                new SwipeItem(GESTURE_CHOP, "CHOP", "Hold the device comfortably with one or two hands and pretend to use the edge of the side of the device to cut or chop a stick, vegetable/ or chicken neck."),
-                new SwipeItem(GESTURE_ROLL, "ROLL", "Hold the device comfortably with one or two hands and rotate 90 degrees +/-around the X axis"),
-                new SwipeItem(GESTURE_SPIN, "SPIN", "Spin the device")
-        );
+        for (int i = 0; i < 4; i++) {
+            String buttonID = "btnGesture" + (20 + i);
+            int resID = getResources().getIdentifier(buttonID, "id", getPackageName());
+            Button btn = (Button) findViewById(resID);
+            btn.setOnClickListener(this);
+            mButtons2.add(btn);
+        }
 
-        final SwipeSelector action3Selector = (SwipeSelector) findViewById(R.id.deliverySelector);
-        action3Selector.setItems(
-                new SwipeItem(GESTURE_TAP, "TAP", "Hold the device comfortably with one or two hands and 'tap' the top width of the device against an imaginary surface."),
-                new SwipeItem(GESTURE_CHOP, "CHOP", "Hold the device comfortably with one or two hands and pretend to use the edge of the side of the device to cut or chop a stick, vegetable/ or chicken neck."),
-                new SwipeItem(GESTURE_ROLL, "ROLL", "Hold the device comfortably with one or two hands and rotate 90 degrees +/-around the X axis"),
-                new SwipeItem(GESTURE_SPIN, "SPIN", "Spin the device")
-        );
-
-        findViewById(R.id.sendButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                SwipeItem selectedAction1 = action1Selector.getSelectedItem();
-                SwipeItem selectedAction2 = action2Selector.getSelectedItem();
-                SwipeItem selectedAction3 = action3Selector.getSelectedItem();
-
-                String action = String.format("%d%d%d", (Integer)selectedAction1.value,(Integer)selectedAction2.value,(Integer)selectedAction3.value);
-                if (checkExistGesture(action)) {
-                    Toast.makeText(getApplicationContext(), "You already have these gesture", Toast.LENGTH_LONG).show();
-                } else {
-                    if (addGesture(action, true)) {
-                        Toast.makeText(getApplicationContext(), "Successfully Added Gesture", Toast.LENGTH_LONG).show();
-
-                        Intent resultIntent = new Intent();
-                        setResult(Activity.RESULT_OK, resultIntent);
-                        finish();
-                    }
-                }
+        for (int i = 0; i < 4; i++) {
+            String buttonID = "btnGesture" + (30 + i);
+            int resID = getResources().getIdentifier(buttonID, "id", getPackageName());
+            Button btn = (Button) findViewById(resID);
+            btn.setOnClickListener(this);
+            mButtons3.add(btn);
+        }
 
 
-            }
-        });
+//        String action = String.format("%d%d%d", (Integer)selectedAction1.value,(Integer)selectedAction2.value,(Integer)selectedAction3.value);
+//        if (checkExistGesture(action)) {
+//            Toast.makeText(getApplicationContext(), "You already have these gesture", Toast.LENGTH_LONG).show();
+//        } else {
+//            if (addGesture(action, true)) {
+//                Toast.makeText(getApplicationContext(), "Successfully Added Gesture", Toast.LENGTH_LONG).show();
+//
+//                Intent resultIntent = new Intent();
+//                setResult(Activity.RESULT_OK, resultIntent);
+//                finish();
+//            }
+//        }
+
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -122,4 +125,32 @@ public class AddGestureActivity extends AppCompatActivity {
 
         return true;
     }
+
+
+    //OnCliickListner Implementation
+
+    @Override
+    public void onClick(View view) {
+        ArrayList<Button> loopArray = null;
+        switch (view.getId()){
+            case R.id.btnGesture10:case R.id.btnGesture11:case R.id.btnGesture12:case R.id.btnGesture13:
+                loopArray = mButtons1;
+                break;
+            case R.id.btnGesture20:case R.id.btnGesture21:case R.id.btnGesture22:case R.id.btnGesture23:
+                loopArray = mButtons2;
+                break;
+            case R.id.btnGesture30:case R.id.btnGesture31:case R.id.btnGesture32:case R.id.btnGesture33:
+                loopArray = mButtons3;
+                break;
+        }
+
+        if (loopArray != null) {
+            for (Button btn: loopArray ) {
+                if (btn.getId() != view.getId()) {
+                    btn.setEnabled(false);
+                }
+            }
+        }
+    }
+
 }
