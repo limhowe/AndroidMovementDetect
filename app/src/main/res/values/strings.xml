@@ -20,4 +20,9 @@
     <string name="button_text_add_gesture">That\'s it. Add this combination.</string>
     <string name="button_text_edit_gesture">That\'s it. Use this combination.</string>
 
+    <string name="gesture_text_tap">Hold the device comfortably with one or two hands and \'tap\' the top width of the device against an imaginary object</string>
+    <string name="gesture_text_chop">Hold the device comfortably with one or two hands and pretend to use the edge of the side of the device to cut or chop a stick or vegetable, as with a hatchet</string>
+    <string name="gesture_text_spin">Balance the device on one or two vertically oriented fingers and use your other hand to rotate the device at 2+ rps, as with a ball. Alternately, rest the device’s back surface on a flat, hard, surface and using one or two hands, rotate the device on that surface, as like a spinning top. Be sure to avoid damaging the device or anything else</string>
+    <string name="gesture_text_roll">Hold the device comfortably with one or two hands and pretend to pour liquid out of a pot, and return to the start position</string>
+
 </resources>

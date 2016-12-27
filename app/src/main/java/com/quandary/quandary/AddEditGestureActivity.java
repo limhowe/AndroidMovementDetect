@@ -2,12 +2,17 @@ package com.quandary.quandary;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
+import android.net.Uri;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.quandary.quandary.db.FliiikGesture;
@@ -15,6 +20,8 @@ import com.quandary.quandary.db.GesturesDatabaseHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.quandary.quandary.FliiikConstant.*;
 
 public class AddEditGestureActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -35,6 +42,12 @@ public class AddEditGestureActivity extends AppCompatActivity implements View.On
 
     int mActivityType =  ACTIVITY_TYPE_ADD;
     FliiikGesture mCurrentGesture = null;
+
+    CoordinatorLayout mCoordinatorLayout;
+    View.OnClickListener mOnClickListener;
+    Button mDescriptionTap, mDescriptionChop, mDescriptionRoll, mDescriptionSpin;
+
+    String mVideoUrl = GESTURE_TAP_VIDEO_LINK;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -154,6 +167,57 @@ public class AddEditGestureActivity extends AppCompatActivity implements View.On
             mSendButton.setEnabled(true);
             mSendButton.setText(getResources().getString(R.string.button_text_edit_gesture));
         }
+
+        mCoordinatorLayout = (CoordinatorLayout)findViewById(R.id.activity_add_gesture);
+
+        mOnClickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                String url = mVideoUrl;
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(url));
+                startActivity(intent);
+
+            }
+        };
+
+
+
+        mDescriptionTap = (Button) findViewById(R.id.btnGestureDesc40);
+        mDescriptionChop = (Button) findViewById(R.id.btnGestureDesc41);
+        mDescriptionRoll = (Button) findViewById(R.id.btnGestureDesc42);
+        mDescriptionSpin = (Button) findViewById(R.id.btnGestureDesc43);
+
+
+        mDescriptionTap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showGestureDescription(GESTURE_TAP);
+            }
+        });
+
+        mDescriptionChop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showGestureDescription(GESTURE_CHOP);
+            }
+        });
+
+        mDescriptionRoll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showGestureDescription(GESTURE_ROLL);
+            }
+        });
+
+        mDescriptionSpin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showGestureDescription(GESTURE_SPIN);
+            }
+        });
+
     }
 
 
@@ -301,7 +365,6 @@ public class AddEditGestureActivity extends AppCompatActivity implements View.On
                     }
                 }
 
-
                 return;
             }
         }
@@ -321,6 +384,45 @@ public class AddEditGestureActivity extends AppCompatActivity implements View.On
         } else {
             mSendButton.setEnabled(false);
         }
+    }
+
+    //Show Descriptions
+
+    private void showGestureDescription(int gestureType) {
+
+
+        String gestureString = getResources().getString(R.string.gesture_text_spin);
+
+        switch (gestureType) {
+            case GESTURE_TAP:
+                gestureString = getResources().getString(R.string.gesture_text_tap);
+                mVideoUrl = GESTURE_TAP_VIDEO_LINK;
+                break;
+            case GESTURE_CHOP:
+                gestureString = getResources().getString(R.string.gesture_text_chop);
+                mVideoUrl = GESTURE_CHOP_VIDEO_LINK;
+                break;
+            case GESTURE_ROLL:
+                gestureString = getResources().getString(R.string.gesture_text_roll);
+                mVideoUrl = GESTURE_ROLL_VIDEO_LINK;
+                break;
+            case GESTURE_SPIN:
+                gestureString = getResources().getString(R.string.gesture_text_spin);
+                mVideoUrl = GESTURE_SPIN_VIDEO_LINK;
+                break;
+        }
+
+
+        Snackbar snackbar = Snackbar
+                .make(mCoordinatorLayout, gestureString, Snackbar.LENGTH_INDEFINITE)
+                .setDuration(10000)
+                .setAction("View", mOnClickListener);
+        View snackbarView = snackbar.getView();
+        snackbarView.setBackgroundColor(Color.DKGRAY);
+        TextView textView = (TextView) snackbarView.findViewById(android.support.design.R.id.snackbar_text);
+        textView.setMaxLines(10);
+        textView.setTextColor(Color.WHITE);
+        snackbar.show();
     }
 
 }

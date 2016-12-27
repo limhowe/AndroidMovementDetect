@@ -10,6 +10,11 @@ public class FliiikConstant {
     public static final int GESTURE_ROLL = 2;
     public static final int GESTURE_SPIN = 3;
 
+    public static final String GESTURE_TAP_VIDEO_LINK = "http://www.youtube.com";
+    public static final String GESTURE_CHOP_VIDEO_LINK = "http://www.youtube.com";
+    public static final String GESTURE_ROLL_VIDEO_LINK = "http://www.youtube.com";
+    public static final String GESTURE_SPIN_VIDEO_LINK = "http://www.youtube.com";
+
 
     public static final int X_POSITIVE = 1;
     public static final int X_NEGATIVE = 2;
