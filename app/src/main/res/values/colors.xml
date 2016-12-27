@@ -4,9 +4,10 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
 
-    <color name="primary">#EF5350</color>
+    <color name="primary">#46bdbf</color>
     <color name="secondary">#B71C1C</color>
     <color name="overlay_light">#F8F8F8</color>
+    <color name="light_grey">#42221f1f</color>
     <color name="gray">#444440</color>
 
     <color name="text_title">#444444</color>

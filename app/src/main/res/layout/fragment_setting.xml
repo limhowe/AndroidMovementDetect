@@ -2,6 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.quandary.quandary.ui.fragments.SettingFragment">
 
 
@@ -17,79 +18,174 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <TextView
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:text="Motion"
-                android:textSize="11sp"
-                android:gravity="center" />
-
-            <SeekBar
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:max="20"
-                android:progress="12"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:id="@+id/seekBarMotion"
-                />
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="80dp"
+                    android:layout_height="50dp"
+                    android:text="Motion"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/material_drawer_background"
+                    android:gravity="center_vertical" />
 
 
-            <EditText
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:textColor="@color/gray"
-                android:inputType="none"
-                android:text="2.7"
-                android:id="@+id/editMotionSensor" />
+                <EditText
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:textColor="@color/material_drawer_background"
+                    android:inputType="none"
+                    android:text="2.7"
+                    android:textStyle="bold"
+                    android:id="@+id/editMotionSensor" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="30dp"
+                    android:layout_height="50dp"
+                    android:textColor="@color/light_grey"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center"
+                    android:text="1.5"
+                    android:id="@+id/minMotionSensor" />
+
+                <org.adw.library.widgets.discreteseekbar.DiscreteSeekBar
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    app:dsb_min="15"
+                    app:dsb_max="35"
+                    app:dsb_value="27"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:id="@+id/seekBarMotion"
+                    app:dsb_allowTrackClickToDrag="false"
+                    app:dsb_progressColor="@color/primary"
+                    app:dsb_rippleColor="@color/primary"
+                    app:dsb_indicatorColor="@color/primary"
+                    app:dsb_trackColor = "@color/light_grey"
+                    app:dsb_indicatorFormatter="%d"/>
+
+
+                <TextView
+                    android:layout_width="30dp"
+                    android:layout_height="50dp"
+                    android:textColor="@color/light_grey"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center"
+                    android:text="3.5"
+                    android:id="@+id/maxnMotionSensor" />
+
+            </LinearLayout>
+
 
         </LinearLayout>
+
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_marginTop="16dp"
+            android:orientation="vertical">
 
-            <TextView
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:textSize="11sp"
-                android:text="Distance"
-                android:gravity="center" />
-
-            <SeekBar
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:max="30"
-                android:progress="14"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:id="@+id/seekBarDistance"
-                />
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="80dp"
+                    android:layout_height="50dp"
+                    android:textSize="14sp"
+                    android:text="Distance"
+                    android:textStyle="bold"
+                    android:textColor="@color/material_drawer_background"
+                    android:gravity="center_vertical" />
 
 
-            <EditText
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:textColor="@color/gray"
-                android:inputType="none"
-                android:text="2.9"
-                android:id="@+id/editMotionDistance" />
+                <EditText
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:textColor="@color/material_drawer_background"
+                    android:inputType="none"
+                    android:text="2.9"
+                    android:textStyle="bold"
+                    android:id="@+id/editMotionDistance" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="30dp"
+                    android:layout_height="50dp"
+                    android:textColor="@color/light_grey"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center"
+                    android:text="1.5"
+                    android:id="@+id/minMotionDistance" />
+
+                <org.adw.library.widgets.discreteseekbar.DiscreteSeekBar
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    app:dsb_min="15"
+                    app:dsb_max="35"
+                    app:dsb_value="27"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:id="@+id/seekBarDistance"
+                    app:dsb_allowTrackClickToDrag="false"
+                    app:dsb_progressColor="@color/primary"
+                    app:dsb_rippleColor="@color/primary"
+                    app:dsb_indicatorColor="@color/primary"
+                    app:dsb_trackColor = "@color/light_grey"
+                    app:dsb_indicatorFormatter="%d"/>
+
+                <TextView
+                    android:layout_width="30dp"
+                    android:layout_height="50dp"
+                    android:textColor="@color/light_grey"
+                    android:layout_gravity="center_vertical"
+                    android:text="3.5"
+                    android:gravity="center"
+                    android:id="@+id/maxMotionDistance" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
 
         <Button
-            android:text="Update Sensor"
+            android:text="Update Sensors"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
+            android:background="@drawable/round_gesture_btn"
+            android:layout_margin="16dp"
+            android:textColor="#FFFFFF"
             android:id="@+id/btnUpdate" />
+
+        <Button
+            android:text="Restore Default"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="@drawable/round_gesture_btn"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:textColor="#FFFFFF"
+            android:id="@+id/btnReset" />
 
     </LinearLayout>
 

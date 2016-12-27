@@ -32,7 +32,7 @@ import com.orhanobut.dialogplus.Holder;
 import com.orhanobut.dialogplus.ListHolder;
 import com.orhanobut.dialogplus.OnClickListener;
 import com.orhanobut.dialogplus.OnItemClickListener;
-import com.quandary.quandary.AddGestureActivity;
+import com.quandary.quandary.AddEditGestureActivity;
 import com.quandary.quandary.R;
 import com.quandary.quandary.db.FliiikGesture;
 import com.quandary.quandary.db.GesturesDatabaseHelper;
@@ -61,6 +61,7 @@ public class EditFragment extends Fragment {
     OnItemClickListener itemClickListener;
 
     static final int ADD_GESTURE_REQUEST = 1;  // The request code
+    static final int EDIT_GESTURE_REQUEST = 2;  // The request code
 
     private SwipeMenuListView mListView;
     private PackageManager mPackageManager;
@@ -248,14 +249,23 @@ public class EditFragment extends Fragment {
 
     //NAVIGATION
     private void showAddGestureActivity() {
-        Intent intent = new Intent(getActivity(), AddGestureActivity.class);
+        Intent intent = new Intent(getActivity(), AddEditGestureActivity.class);
         startActivityForResult(intent, ADD_GESTURE_REQUEST);
+    }
+
+    private void showEditGestureActivity() {
+        Intent intent = new Intent(getActivity(), AddEditGestureActivity.class);
+
+        if (mCurrentGesture != null) {
+            intent.putExtra(AddEditGestureActivity.EXTRA_BUNDLE_KEY_GESTURE_ID , mCurrentGesture.id);
+        }
+        startActivityForResult(intent, EDIT_GESTURE_REQUEST);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
-        if (requestCode == ADD_GESTURE_REQUEST) {
+        if (requestCode == ADD_GESTURE_REQUEST || requestCode == EDIT_GESTURE_REQUEST) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 mAppList = GesturesDatabaseHelper.getInstance(getActivity().getApplicationContext()).getAllGestures();
@@ -337,6 +347,14 @@ public class EditFragment extends Fragment {
 
             holder.fk_title.setText(FliiikHelper.decodeActionString(gesture.action));
             holder.fk_switch.setChecked(gesture.status);
+
+            holder.fk_title.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mCurrentGesture = gesture;
+                    showEditGestureActivity();
+                }
+            });
 
             holder.fk_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override

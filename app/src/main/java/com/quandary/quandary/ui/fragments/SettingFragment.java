@@ -14,17 +14,19 @@ import android.widget.SeekBar;
 import com.quandary.quandary.ConfigurationManager;
 import com.quandary.quandary.R;
 
+import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
+
 public class SettingFragment extends Fragment {
 
     private OnSettingChangeListener mListener;
 
-    SeekBar mMotionSeekBar, mDistanceSeekBar;
+    DiscreteSeekBar mMotionSeekBar, mDistanceSeekBar;
     EditText mMotionEdit, mDistanceEdit;
 
     double MOTION_MIN = 1.5;
     double DISTANCE_MIN = 1.5;
 
-    Button mBtnUpdate;
+    Button mBtnUpdate,mBtnReset;
 
     ConfigurationManager sharedConfigurationManager;
 
@@ -61,8 +63,8 @@ public class SettingFragment extends Fragment {
         getActivity().setTitle("Setting");
 
 
-        mMotionSeekBar = (SeekBar) view.findViewById(R.id.seekBarMotion);
-        mDistanceSeekBar = (SeekBar) view.findViewById(R.id.seekBarDistance);
+        mMotionSeekBar = (DiscreteSeekBar) view.findViewById(R.id.seekBarMotion);
+        mDistanceSeekBar = (DiscreteSeekBar) view.findViewById(R.id.seekBarDistance);
 
         mMotionEdit = (EditText) view.findViewById(R.id.editMotionSensor);
         mDistanceEdit = (EditText) view.findViewById(R.id.editMotionDistance);
@@ -77,8 +79,11 @@ public class SettingFragment extends Fragment {
         int motionSeek =  (int)Math.round((motionSensor - MOTION_MIN) * 10);
         int distanceSeek = (int)Math.round((distanceSensor - DISTANCE_MIN) * 10);
 
-        mDistanceSeekBar.setProgress(distanceSeek);
-        mMotionSeekBar.setProgress(motionSeek);
+        int motionSeekVal =  (int)Math.round(motionSensor* 10);
+        int distanceSeekVal = (int)Math.round(distanceSensor * 10);
+
+        mDistanceSeekBar.setProgress(distanceSeekVal);
+        mMotionSeekBar.setProgress(motionSeekVal);
 
         double value = MOTION_MIN + (float)(motionSeek)/10.0f;
         mMotionEdit.setText(String.format("%.1f",value));
@@ -87,38 +92,42 @@ public class SettingFragment extends Fragment {
         mDistanceEdit.setText(String.format("%.1f",value));
 
 
-        mMotionSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        mMotionSeekBar.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                double value = MOTION_MIN + (float)(progress)/10.0f;
-                mMotionEdit.setText(String.format("%.1f",value));
+            public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
+                double calcValue = (float)(value)/10.0f;
+                String format = String.format("%.1f",calcValue);
+                mMotionEdit.setText(format);
+                seekBar.setIndicatorFormatter(format);
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
+            public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
 
             }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
+            public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
 
             }
         });
 
-        mDistanceSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        mDistanceSeekBar.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                double value = DISTANCE_MIN + (float)(progress)/10.0f;
-                mDistanceEdit.setText(String.format("%.1f",value));
+            public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
+                double calcValue = (float)(value)/10.0f;
+                String format = String.format("%.1f",calcValue);
+                mDistanceEdit.setText(format);
+                seekBar.setIndicatorFormatter(format);
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
+            public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
 
             }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
+            public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
 
             }
         });
@@ -130,6 +139,24 @@ public class SettingFragment extends Fragment {
             public void onClick(View v) {
                 String motionText = mMotionEdit.getText().toString();
                 String distanceText = mDistanceEdit.getText().toString();
+
+                mListener.onSettingUpdated(Float.parseFloat(motionText),Float.parseFloat(distanceText));
+            }
+        });
+
+        mBtnReset = (Button) view.findViewById(R.id.btnReset);
+        mBtnReset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                mMotionEdit.setText("2.7");
+                mDistanceEdit.setText("2.9");
+
+                String motionText = mMotionEdit.getText().toString();
+                String distanceText = mDistanceEdit.getText().toString();
+
+                mDistanceSeekBar.setProgress(29);
+                mMotionSeekBar.setProgress(27);
 
                 mListener.onSettingUpdated(Float.parseFloat(motionText),Float.parseFloat(distanceText));
             }

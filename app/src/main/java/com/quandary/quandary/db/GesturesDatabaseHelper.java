@@ -167,6 +167,44 @@ public class GesturesDatabaseHelper extends SQLiteOpenHelper {
     }
 
 
+    public FliiikGesture getGesture(int id) {
+        FliiikGesture post = null;
+
+        String[] columns = {
+                KEY_GESTURE_ID,
+                KEY_GESTURE_ACTION,
+                KEY_PACKAGE_NAME,
+                KEY_STATUS
+        };
+
+        String selection = KEY_GESTURE_ID + " = ?";
+        String[] whereArgs = new String[]{""+id};
+        String sortOrder = KEY_GESTURE_ID + " ASC";
+
+        // "getReadableDatabase()" and "getWriteableDatabase()" return the same object (except under low
+        // disk space scenarios)
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query(TABLE_GUESTURE, columns, selection, whereArgs,null,null, sortOrder);
+        try {
+            if (cursor.moveToFirst()) {
+                FliiikGesture newGesture  = new FliiikGesture();
+                newGesture.id = cursor.getInt(cursor.getColumnIndex(KEY_GESTURE_ID));
+                newGesture.action = cursor.getString(cursor.getColumnIndex(KEY_GESTURE_ACTION));
+                newGesture.packageName = cursor.getString(cursor.getColumnIndex(KEY_PACKAGE_NAME));
+                newGesture.status = cursor.getInt(cursor.getColumnIndex(KEY_STATUS)) ==1;
+                post = newGesture;
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to get gestures from database");
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        return post;
+    }
+
+
     // Insert a gesture into the database
     public void addGesture(FliiikGesture gesture) {
         // Create and/or open the database for writing
@@ -191,12 +229,15 @@ public class GesturesDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+
+
     // Update the gesture
     public int updateGesture(FliiikGesture gesture) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
         values.put(KEY_PACKAGE_NAME, gesture.packageName);
+        values.put(KEY_GESTURE_ACTION, gesture.action);
         values.put(KEY_STATUS, gesture.status);
 
         // Updating profile picture url for user with that userName

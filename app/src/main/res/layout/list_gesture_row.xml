@@ -8,10 +8,10 @@
 
     <TextView
         android:layout_width="wrap_content"
-        android:layout_height="50dp"
+        android:layout_height="40dp"
         android:gravity="center_vertical"
-        android:textColor="@color/colorPrimaryDark"
-        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/primary"
+        android:textSize="19sp"
         android:textStyle="bold"
         android:text="Tap Tap Tap"
         android:id="@+id/textGesture" />
@@ -56,7 +56,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/enableSwitch"
-            android:layout_gravity="center_vertical" />
+            android:layout_gravity="center_vertical"
+            android:theme="@style/GestureSwitch" />
 
     </LinearLayout>
 

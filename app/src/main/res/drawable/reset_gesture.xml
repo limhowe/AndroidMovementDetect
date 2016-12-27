@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:state_enabled="false"
+      android:drawable="@drawable/reset_gesture_disabled_24dp" />
+  <item android:state_enabled="true"
+      android:drawable="@drawable/reset_gesture_enabled_24dp" />
+  <item android:drawable="@drawable/reset_gesture_enabled_24dp" />
+</selector>
